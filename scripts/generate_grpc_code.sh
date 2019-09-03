@@ -22,7 +22,7 @@ else
    exit 1
 fi
 unzip protoc-*.zip bin/*
-rm -f protoc-*.zip
+rm -f protoc-*.zip readme.txt
 
 # Calculate absolute paths for the protoc command.
 IN_DIR=$(cd ../grpc/ 2> /dev/null && pwd -P)
