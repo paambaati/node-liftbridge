@@ -1,0 +1,27 @@
+{
+  "name": "node-liftbridge",
+  "version": "1.0.0",
+  "description": "Node.js client for Liftbridge",
+  "main": "lib/index.js",
+  "repository": {
+    "url": "https://github.com/paambaati/node-liftbridge",
+    "type": "git"
+  },
+  "author": "GP <me@httgp.com>",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "build": "tsc",
+    "debug": "ts-node src/"
+  },
+  "dependencies": {
+    "@types/node": "12.7.3",
+    "grpc": "1.23.3"
+  },
+  "devDependencies": {
+    "grpc-tools": "1.8.0",
+    "ts-node": "8.3.0",
+    "ts-protoc-gen": "0.11.0",
+    "typescript": "3.6.2"
+  }
+}
