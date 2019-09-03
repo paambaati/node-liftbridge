@@ -1,0 +1,49 @@
+#!/bin/bash
+
+set -eu
+
+PROTOC_VERSION="3.9.1"
+
+# Switch to script location so all relative paths work.
+PARENT_PATH=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+cd "$PARENT_PATH"
+
+# Fetch Liftbridge gRPC Proto definition.
+wget https://raw.githubusercontent.com/liftbridge-io/liftbridge-grpc/0877a0cacb7a721e2e19280cff126dc2ed51912d/api.proto -O ../grpc/api.proto
+
+# Fetch & extract protoc.
+OS=$(uname)
+if [ "$OS" == "Darwin" ]; then
+   wget "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-osx-x86_64.zip"
+elif [ "$OS" == "Linux" ]; then
+   wget "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip"
+else
+   echo "Unsupported operating system! Please generate this on Linux or macOS."
+   exit 1
+fi
+unzip protoc-*.zip bin/*
+rm -f protoc-*.zip
+
+# Calculate absolute paths for the protoc command.
+IN_DIR=$(cd ../grpc/ 2> /dev/null && pwd -P)
+NODE_MODULES_BIN_DIR=$(cd ../node_modules/.bin/ 2> /dev/null && pwd -P)
+
+# Set up path variables for the generators.
+PROTOC_GEN_TS_PATH="${NODE_MODULES_BIN_DIR}/protoc-gen-ts"
+PROTOC_GEN_GRPC_PATH="${NODE_MODULES_BIN_DIR}/grpc_tools_node_protoc_plugin"
+
+# Directory to write generated code to (.js and .d.ts files) 
+OUT_DIR="../grpc/generated"
+
+# Generate gRPC bindings.
+./bin/protoc \
+    --plugin="protoc-gen-ts=${PROTOC_GEN_TS_PATH}" \
+    --plugin=protoc-gen-grpc=${PROTOC_GEN_GRPC_PATH} \
+    --js_out="import_style=commonjs,binary:${OUT_DIR}" \
+    --ts_out="service=grpc-node:${OUT_DIR}" \
+    --grpc_out="${OUT_DIR}" \
+    --proto_path="${IN_DIR}" \
+    ${IN_DIR}/api.proto
+
+# Cleanup protoc download.
+rm -rf ./bin/
