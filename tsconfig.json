@@ -28,7 +28,7 @@
         ]
     },
     "include": [
-        "client/*.ts"
+        "src/*.ts"
     ],
     "exclude": [
         "node_modules"
