@@ -12,7 +12,7 @@
   "private": false,
   "scripts": {
     "build": "tsc",
-    "debug": "ts-node src/"
+    "debug": "ts-node src/debug.ts"
   },
   "dependencies": {
     "@types/node": "12.7.3",
