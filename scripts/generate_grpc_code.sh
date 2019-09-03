@@ -8,6 +8,16 @@ PROTOC_VERSION="3.9.1"
 PARENT_PATH=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 cd "$PARENT_PATH"
 
+# Setup cleanup trap.
+cleanup () {
+    echo "Something went wrong! Cleaning up downloaded artifacts..."
+    ARG=$?
+    rm -f protoc-*.zip readme.txt
+    rm -rf ./bin/
+    exit $ARG
+}
+trap cleanup EXIT
+
 # Fetch Liftbridge gRPC Proto definition.
 wget https://raw.githubusercontent.com/liftbridge-io/liftbridge-grpc/0877a0cacb7a721e2e19280cff126dc2ed51912d/api.proto -O ../grpc/api.proto
 
