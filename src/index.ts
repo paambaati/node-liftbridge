@@ -1,14 +1,51 @@
-import { credentials as Credentials, ChannelCredentials, ClientReadableStream, ServiceError } from 'grpc';
+import Bluebird from 'bluebird';
+import { Client as grpcClient, credentials as Credentials, ChannelCredentials, ClientReadableStream, ServiceError } from 'grpc';
 import { APIClient } from '../grpc/generated/api_grpc_pb';
 import { SubscribeRequest, Message, CreateStreamRequest, CreateStreamResponse, PublishResponse, PublishRequest, FetchMetadataRequest, FetchMetadataResponse } from '../grpc/generated/api_pb';
 import LiftbridgeStream from './stream';
 import LiftbridgeMessage from './message';
+import { NoAddressesError } from './errors';
+import { shuffleArray } from './utils';
 
 export default class LiftbridgeClient {
-    private client: APIClient;
+    private addresses: string[];
+    private options?: object;
+    private credentials: ChannelCredentials;
+    private client!: APIClient;
 
-    constructor(address: string, credentials?: ChannelCredentials, options?: object) {
-        this.client = new APIClient(address, credentials || Credentials.createInsecure(), options);
+    constructor(addresses: string[] | string, credentials?: ChannelCredentials, options?: object) {
+        if (!addresses || addresses.length < 1) {
+            throw new NoAddressesError();
+        }
+        this.addresses = Array.isArray(addresses) ? addresses : [ addresses ];
+        this.credentials = credentials || Credentials.createInsecure();
+        this.options = options;
+    }
+
+    private connectToLiftbridge(address: string, timeout: number = 5000): Promise<APIClient> {
+        return new Promise((resolve, reject) => {
+            const connection = new grpcClient(address, this.credentials, this.options);
+            // `waitForReady` takes a deadline.
+            // Deadline is always UNIX epoch time + milliseconds in the future when you want the deadline to expire.
+            connection.waitForReady(new Date().getTime() + timeout, err => {
+                if (err) return reject(err);
+                this.client = new APIClient(address, this.credentials, {
+                    channelOverride: connection.getChannel(), // Reuse the working channel for APIClient.
+                });
+                return resolve(this.client);
+            });
+        });
+    }
+
+    public connect(timeout?: number): Promise<APIClient> {
+        return new Promise((resolve, reject) => {
+            // Try connecting to each Liftbridge server in random order and use the first successful connection for APIClient.
+            const connectionAttempts = shuffleArray(this.addresses).map(address => this.connectToLiftbridge(address, timeout));
+            Bluebird.any(connectionAttempts).then(client => {
+                this.client = client;
+                return resolve(this.client = client);
+            }).catch(reject);
+        });
     }
 
     private createStreamRequest(stream: LiftbridgeStream): Promise<CreateStreamResponse> {
@@ -29,6 +66,7 @@ export default class LiftbridgeClient {
     private createSubscribeRequest(stream: LiftbridgeStream): ClientReadableStream<Message> {
         const subscribeRequest = new SubscribeRequest();
         subscribeRequest.setStream(stream.name);
+        subscribeRequest.setPartition(0); // TODO: debug this
         subscribeRequest.setStartposition(stream.startPosition);
         if (stream.startOffset) {
             subscribeRequest.setStartoffset(stream.startOffset);
@@ -62,22 +100,51 @@ export default class LiftbridgeClient {
         });
     }
 
+    private async fetchMetadata(stream: LiftbridgeStream) {
+        const metadataFetcher = this.createMetadataRequest(stream.name);
+        return metadataFetcher;
+    }
+
+    /**
+     * `createStream` creates a new stream attached to a NATS subject. Subject is
+	 * the NATS subject the stream is attached to, and name is the stream
+	 * identifier, unique per subject. It throws `StreamAlreadyExistsError` if a
+     * stream with the given subject and name already exists.
+     * @param stream Stream to create.
+     */
     public createStream(stream: LiftbridgeStream) {
         return this.createStreamRequest(stream);
     }
 
+    /**
+     * `subscribe` creates an ephemeral subscription for the given stream. It
+	 * begins receiving messages starting at the configured position and waits
+	 * for new messages when it reaches the end of the stream. The default
+	 * start position is the end of the stream. It throws a `NoSuchStreamError`
+	 * if the given stream does not exist. Use `subscribe().close()` to close
+     * a subscription.
+     * @param stream Stream to subscribe to.
+     */
     public subscribe(stream: LiftbridgeStream) {
         const subscription = this.createSubscribeRequest(stream);
         return subscription;
     }
 
+    /**
+     * `publish` publishes a new message to the NATS subject. If the AckPolicy is
+	 * not NONE and a deadline is provided, this will synchronously block until
+	 * the first ack is received. If the ack is not received in time, a
+	 * DeadlineExceeded status code is returned. If an AckPolicy and deadline
+	 * are configured, this returns the first Ack on success, otherwise it
+	 * returns nil.
+     * @param message Message to publish.
+     */
     public publish(message: LiftbridgeMessage) {
         const publisher = this.createPublishRequest(message);
         return publisher;
     }
 
-    public async fetchMetadata(stream: LiftbridgeStream) {
-        const metadataFetcher = this.createMetadataRequest(stream.name);
-        return metadataFetcher;
+    public close(): void {
+        this.client.close();
     }
 }
