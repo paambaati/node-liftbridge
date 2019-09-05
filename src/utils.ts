@@ -1,4 +1,5 @@
 import { backOff, IBackOffOptions } from 'exponential-backoff';
+import { JitterTypes } from 'exponential-backoff/dist/options';
 
 /**
  * Randomly shuffles an array.
@@ -19,10 +20,18 @@ export function shuffleArray(array: any[]) {
 
 /**
  * Execute the `Promise` wrapped inside a function with retry, exponential backoff & [jitter](https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/).
+ * Defaults to 5 retries, full jitter, backoff multiple of 1.5 and no starting delay.
  *
  * @param call Function returning a `Promise` that you want to retry.
- * @param retryOptions Retry & exponential backoff options.
+ * @param retryOptions Retry & exponential backoff options (has own defaults - read source).
  */
-export function faultTolerantCall<T>(call: () => Promise<T>, retryOptions: Partial<IBackOffOptions>): Promise<T> {
-    return backOff(call, retryOptions);
+export function faultTolerantCall<T>(call: () => Promise<T>, retryOptions?: Partial<IBackOffOptions>): Promise<T> {
+    const programDefaults: Partial<IBackOffOptions> = {
+        delayFirstAttempt: false,
+        numOfAttempts: 5,
+        jitter: JitterTypes.Full,
+        startingDelay: 0,
+        timeMultiple: 1.5,
+    }
+    return backOff(call, Object.assign(retryOptions || {}, programDefaults));
 }
