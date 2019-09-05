@@ -9,6 +9,7 @@
 
 export const enum ConnectionErrorCodes {
     ERR_NO_ADDRESSES_ERROR = 'ERR_NO_ADDRESSES_ERROR',
+    ERR_COULD_NOT_CONNECT_ERROR = 'ERR_COULD_NOT_CONNECT_ERROR',
 }
 
 export const enum CreateStreamErrorCodes {
@@ -53,13 +54,28 @@ export class SubscribeError extends Error {
     }
 }
 
+export class MetadataError extends Error {
+    constructor(public message: string = 'Unexpected error while fetching metadata for Liftbridge stream') {
+        super();
+        Object.setPrototypeOf(this, new.target.prototype);
+        this.name = 'MetadataError';
+        this.stack = new Error(message).stack;
+        return this;
+    }
+}
+
 /**
  * Error classes.
  */
 
-export class NoAddressesError extends CreateStreamError {
+export class NoAddressesError extends ConnectionError {
     name = 'NoAddressesError';
     message = 'No cluster addresses to connect to!';
+}
+
+export class CouldNotConnectToAnyServerError extends ConnectionError {
+    name = 'CouldNotConnectToAnyServerError';
+    message = 'Could not connect to any of the given addresses!';
 }
 
 export class StreamAlreadyExistsError extends CreateStreamError {
@@ -75,4 +91,9 @@ export class InvalidPartitionsError extends CreateStreamError {
 export class NoSuchStreamError extends SubscribeError {
     name = 'NoSuchStreamError';
     message = 'No such stream exists!';
+}
+
+export class StreamNotFoundInMetadataError extends MetadataError {
+    name = 'StreamNotFoundInMetadataError';
+    message = 'No matching stream found in metadata!';
 }
