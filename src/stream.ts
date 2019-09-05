@@ -28,7 +28,7 @@ export interface ILiftbridgeStreamOptions {
     /**
      * `partitions` determines how many partitions to create for a stream. If `0`,
 	 * this will behave as a stream with a single partition. If this is not
-	 * set, it defaults to 1``.
+	 * set, it defaults to `1`.
      */
     partitions?: number
 }
