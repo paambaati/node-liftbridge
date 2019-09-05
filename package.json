@@ -16,7 +16,9 @@
   },
   "dependencies": {
     "bluebird": "3.5.5",
-    "grpc": "1.23.3"
+    "exponential-backoff": "2.1.1",
+    "grpc": "1.23.3",
+    "rapid-crc": "1.0.10"
   },
   "devDependencies": {
     "@types/bluebird": "3.5.27",
