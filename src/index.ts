@@ -4,36 +4,48 @@ import { APIClient } from '../grpc/generated/api_grpc_pb';
 import { SubscribeRequest, Message, CreateStreamRequest, CreateStreamResponse, PublishResponse, PublishRequest, FetchMetadataRequest, FetchMetadataResponse } from '../grpc/generated/api_pb';
 import LiftbridgeStream from './stream';
 import LiftbridgeMessage from './message';
-import { NoAddressesError } from './errors';
-import { shuffleArray } from './utils';
+import LiftbridgeMetadata, { IMetadata } from './metadata';
+import { NoAddressesError, CouldNotConnectToAnyServerError } from './errors';
+import { shuffleArray, faultTolerantCall } from './utils';
+import { JitterTypes } from 'exponential-backoff/dist/options';
 
 export default class LiftbridgeClient {
     private addresses: string[];
     private options?: object;
     private credentials: ChannelCredentials;
     private client!: APIClient;
+    private metadata!: LiftbridgeMetadata;
 
     constructor(addresses: string[] | string, credentials?: ChannelCredentials, options?: object) {
         if (!addresses || addresses.length < 1) {
             throw new NoAddressesError();
         }
-        this.addresses = Array.isArray(addresses) ? addresses : [ addresses ];
+        this.addresses = Array.isArray(addresses) ? addresses : [addresses];
         this.credentials = credentials || Credentials.createInsecure();
         this.options = options;
     }
 
     private connectToLiftbridge(address: string, timeout: number = 5000): Promise<APIClient> {
-        return new Promise((resolve, reject) => {
-            const connection = new grpcClient(address, this.credentials, this.options);
-            // `waitForReady` takes a deadline.
-            // Deadline is always UNIX epoch time + milliseconds in the future when you want the deadline to expire.
-            connection.waitForReady(new Date().getTime() + timeout, err => {
-                if (err) return reject(err);
-                this.client = new APIClient(address, this.credentials, {
-                    channelOverride: connection.getChannel(), // Reuse the working channel for APIClient.
+        return faultTolerantCall(() => {
+            return new Promise((resolve, reject) => {
+                console.log('attempting connection to -> ', address);
+                const connection = new grpcClient(address, this.credentials, this.options);
+                // `waitForReady` takes a deadline.
+                // Deadline is always UNIX epoch time + milliseconds in the future when you want the deadline to expire.
+                connection.waitForReady(new Date().getTime() + timeout, err => {
+                    if (err) return reject(err);
+                    this.client = new APIClient(address, this.credentials, {
+                        channelOverride: connection.getChannel(), // Reuse the working channel for APIClient.
+                    });
+                    return resolve(this.client);
                 });
-                return resolve(this.client);
             });
+        }, {
+            delayFirstAttempt: false,
+            numOfAttempts: 1,
+            jitter: JitterTypes.Full,
+            startingDelay: 0,
+            timeMultiple: 1.5,
         });
     }
 
@@ -43,8 +55,13 @@ export default class LiftbridgeClient {
             const connectionAttempts = shuffleArray(this.addresses).map(address => this.connectToLiftbridge(address, timeout));
             Bluebird.any(connectionAttempts).then(client => {
                 this.client = client;
-                return resolve(this.client = client);
-            }).catch(reject);
+                // Client connection succeeded. Now collect broker & partition metadata for all streams.
+                this.fetchMetadata().then(metadataResponse => {
+                    this.metadata = new LiftbridgeMetadata(this.client, metadataResponse);
+                    console.log('METADATA = ', JSON.stringify(this.metadata.get()));
+                    return resolve(this.client);
+                });
+            }).catch(() => reject(new CouldNotConnectToAnyServerError()));
         });
     }
 
@@ -58,7 +75,9 @@ export default class LiftbridgeClient {
             createRequest.setReplicationfactor(stream.replicationFactor);
             this.client.createStream(createRequest, (err: ServiceError | null, response: CreateStreamResponse | undefined) => {
                 if (err) return reject(err);
-                return resolve(response);
+                this.metadata.update().then(() => {
+                    return resolve(response);
+                }).catch(reject);
             });
         });
     }
@@ -66,7 +85,7 @@ export default class LiftbridgeClient {
     private createSubscribeRequest(stream: LiftbridgeStream): ClientReadableStream<Message> {
         const subscribeRequest = new SubscribeRequest();
         subscribeRequest.setStream(stream.name);
-        subscribeRequest.setPartition(0); // TODO: debug this
+        // subscribeRequest.setPartition(0); // TODO: debug this
         subscribeRequest.setStartposition(stream.startPosition);
         if (stream.startOffset) {
             subscribeRequest.setStartoffset(stream.startOffset);
@@ -81,6 +100,11 @@ export default class LiftbridgeClient {
     private createPublishRequest(message: LiftbridgeMessage): Promise<PublishResponse> {
         return new Promise((resolve, reject) => {
             const publishRequest = new PublishRequest();
+            const partitions = this.metadata.getPartitionsCountForSubject(message.getSubject())
+            if (partitions > 0) {
+                // plug in partitioner here.
+                message.setSubject(`${message.getSubject()}.${partitions}`)
+            }
             publishRequest.setMessage(message);
             this.client.publish(publishRequest, (err: ServiceError | null, response: PublishResponse | undefined) => {
                 if (err) return reject(err);
@@ -89,10 +113,12 @@ export default class LiftbridgeClient {
         });
     }
 
-    private createMetadataRequest(streamName: string): Promise<FetchMetadataResponse> {
+    private createMetadataRequest(streams?: string[]): Promise<FetchMetadataResponse> {
         return new Promise((resolve, reject) => {
             const metadataRequest = new FetchMetadataRequest();
-            metadataRequest.addStreams(streamName);
+            if (streams && streams.length) {
+                streams.forEach(metadataRequest.addStreams);
+            }
             this.client.fetchMetadata(metadataRequest, (err: ServiceError | null, response: FetchMetadataResponse | undefined) => {
                 if (err) return reject(err);
                 return resolve(response);
@@ -100,8 +126,16 @@ export default class LiftbridgeClient {
         });
     }
 
-    private async fetchMetadata(stream: LiftbridgeStream) {
-        const metadataFetcher = this.createMetadataRequest(stream.name);
+    private async fetchMetadata(streams?: LiftbridgeStream | LiftbridgeStream[]) {
+        let streamNames: string[] = [];
+        if (streams) {
+            if (Array.isArray(streams)) {
+                streams.forEach(stream => streamNames.push(stream.name));
+            } else {
+                streamNames.push(streams.name);
+            }
+        }
+        const metadataFetcher = this.createMetadataRequest(streamNames);
         return metadataFetcher;
     }
 
