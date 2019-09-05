@@ -1,3 +1,5 @@
+import { backOff, IBackOffOptions } from 'exponential-backoff';
+
 /**
  * Randomly shuffles an array.
  * 
@@ -13,4 +15,14 @@ export function shuffleArray(array: any[]) {
         [arrayCopy[i], arrayCopy[j]] = [arrayCopy[j], arrayCopy[i]];
     }
     return arrayCopy;
+}
+
+/**
+ * Execute the `Promise` wrapped inside a function with retry, exponential backoff & [jitter](https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/).
+ *
+ * @param call Function returning a `Promise` that you want to retry.
+ * @param retryOptions Retry & exponential backoff options.
+ */
+export function faultTolerantCall<T>(call: () => Promise<T>, retryOptions: Partial<IBackOffOptions>): Promise<T> {
+    return backOff(call, retryOptions);
 }
