@@ -40,16 +40,10 @@ export default class LiftbridgeClient {
                     return resolve(this.client);
                 });
             });
-        }, {
-            delayFirstAttempt: false,
-            numOfAttempts: 1,
-            jitter: JitterTypes.Full,
-            startingDelay: 0,
-            timeMultiple: 1.5,
         });
     }
 
-    public connect(timeout?: number): Promise<APIClient> {
+    public connect(timeout?: number): Promise<APIClient> { // TODO: expose fault tolerance options.
         return new Promise((resolve, reject) => {
             // Try connecting to each Liftbridge server in random order and use the first successful connection for APIClient.
             const connectionAttempts = shuffleArray(this.addresses).map(address => this.connectToLiftbridge(address, timeout));
