@@ -15,10 +15,11 @@
     "debug": "ts-node src/debug.ts"
   },
   "dependencies": {
+    "@sindresorhus/fnv1a": "1.2.0",
     "bluebird": "3.5.5",
     "exponential-backoff": "2.1.1",
     "grpc": "1.23.3",
-    "rapid-crc": "1.0.10"
+    "hyperid": "2.0.2"
   },
   "devDependencies": {
     "@types/bluebird": "3.5.27",
