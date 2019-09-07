@@ -63,3 +63,6 @@ typings/
 # macOS .DS_Store files
 .DS_Store
 
+# Built output files
+lib/
+
