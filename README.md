@@ -1,4 +1,4 @@
-# 🌉 node-liftbridge
+# node-liftbridge
 
 ![](liftbridge.svg)
 
