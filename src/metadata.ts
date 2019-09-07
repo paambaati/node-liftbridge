@@ -1,6 +1,6 @@
 import { APIClient } from '../grpc/generated/api_grpc_pb';
 import { FetchMetadataRequest, FetchMetadataResponse } from '../grpc/generated/api_pb';
-import { StreamNotFoundInMetadataError } from './errors';
+import { StreamNotFoundInMetadataError, NoSuchStreamError, NoKnownPartitionError, NoKnownLeaderForPartitionError } from './errors';
 import { ServiceError } from 'grpc';
 
 // Own interfaces.
@@ -43,32 +43,6 @@ interface IBrokerInfo {
     id: string;
     host: string;
     port: number;
-}
-
-// gRPC post-deserialization interfaces.
-export interface ILiftbridgeMetadata {
-    brokersList: ILiftbridgeBrokersList[];
-    metadataList: ILiftbridgeMetadataList[];
-}
-
-interface ILiftbridgeBrokersList {
-    id: string;
-    host: string;
-    port: number;
-}
-
-interface ILiftbridgeMetadataList {
-    name: string;
-    subject: string;
-    error: number;
-    partitionsMap: Array<Array<ILiftbridgePartitionMetadata | number>>;
-}
-
-interface ILiftbridgePartitionMetadata {
-    id: number;
-    leader: string;
-    replicasList: string[];
-    isrList: string[];
 }
 
 export default class LiftbridgeMetadata {
@@ -139,6 +113,10 @@ export default class LiftbridgeMetadata {
         });
     }
 
+    private constructAddress(host: string, port: number): string {
+        return `${host}:${port}`;
+    }
+
     /**
      * `getPartitionsCountForSubject` returns a map containing stream names
      * and the number of partitions for the stream. This does not match on
@@ -172,7 +150,25 @@ export default class LiftbridgeMetadata {
         return this.metadata;
     }
 
+    /**
+     * `get` returns the cluster metadata.
+     */
     public get(): IMetadata {
         return this.metadata;
+    }
+
+    /**
+     * `getAddr` returns the broker address for the given stream partition.
+     * @param stream Stream.
+     * @param partition Stream partition.
+     */
+    public getAddress(stream: string, partition: number): string {
+        const streamMetadata = this.metadata.streams.byName[stream];
+        if (!streamMetadata) throw new NoSuchStreamError();
+        const partitionMetadata = streamMetadata.partitions[partition];
+        if (!partitionMetadata) throw new NoKnownPartitionError();
+        const leader = partitionMetadata.leader;
+        if (!leader) throw new NoKnownLeaderForPartitionError();
+        return this.constructAddress(leader.host, leader.port);
     }
 }

@@ -97,3 +97,13 @@ export class StreamNotFoundInMetadataError extends MetadataError {
     name = 'StreamNotFoundInMetadataError';
     message = 'No matching stream found in metadata!';
 }
+
+export class NoKnownPartitionError extends MetadataError {
+    name = 'NoKnownPartitionError';
+    message = 'No known partitions in metadata!';
+}
+
+export class NoKnownLeaderForPartitionError extends MetadataError {
+    name = 'NoKnownLeaderForPartitionError';
+    message = 'No known leader for partition!';
+}

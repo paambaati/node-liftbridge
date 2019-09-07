@@ -4,10 +4,10 @@ import { APIClient } from '../grpc/generated/api_grpc_pb';
 import { SubscribeRequest, Message, CreateStreamRequest, CreateStreamResponse, PublishResponse, PublishRequest, FetchMetadataRequest, FetchMetadataResponse } from '../grpc/generated/api_pb';
 import LiftbridgeStream from './stream';
 import LiftbridgeMessage from './message';
-import LiftbridgeMetadata, { IMetadata } from './metadata';
+import LiftbridgeMetadata from './metadata';
 import { NoAddressesError, CouldNotConnectToAnyServerError } from './errors';
 import { shuffleArray, faultTolerantCall } from './utils';
-import { JitterTypes } from 'exponential-backoff/dist/options';
+import { builtinPartitioners, BasePartitioner, PartitionerLike } from './partition';
 
 export default class LiftbridgeClient {
     private addresses: string[];
@@ -52,7 +52,6 @@ export default class LiftbridgeClient {
                 // Client connection succeeded. Now collect broker & partition metadata for all streams.
                 this.fetchMetadata().then(metadataResponse => {
                     this.metadata = new LiftbridgeMetadata(this.client, metadataResponse);
-                    console.log('METADATA = ', JSON.stringify(this.metadata.get()));
                     return resolve(this.client);
                 });
             }).catch(() => reject(new CouldNotConnectToAnyServerError()));
@@ -94,10 +93,25 @@ export default class LiftbridgeClient {
     private createPublishRequest(message: LiftbridgeMessage): Promise<PublishResponse> {
         return new Promise((resolve, reject) => {
             const publishRequest = new PublishRequest();
-            const partitions = this.metadata.getPartitionsCountForSubject(message.getSubject())
-            if (partitions > 0) {
-                // plug in partitioner here.
-                message.setSubject(`${message.getSubject()}.${partitions}`)
+            const subject = message.getSubject();
+            const totalPartitions = this.metadata.getPartitionsCountForSubject(subject);
+            let partition: number = 0;
+            if (totalPartitions > 0) {
+                if (message.partition) {
+                    partition = message.partition
+                } else {
+                    if (message.partitionStrategy) {
+                        let partitionerConstructor: PartitionerLike;
+                        if (typeof message.partitionStrategy === 'string') {
+                            partitionerConstructor = builtinPartitioners[message.partitionStrategy];
+                        } else {
+                            partitionerConstructor = message.partitionStrategy;
+                        }
+                        partition = new partitionerConstructor(message, this.metadata.get()).calculatePartition();
+                    }
+                }
+                const updatedSubject = partition ? `${subject}.${partition}` : subject;
+                message.setSubject(updatedSubject);
             }
             publishRequest.setMessage(message);
             this.client.publish(publishRequest, (err: ServiceError | null, response: PublishResponse | undefined) => {
