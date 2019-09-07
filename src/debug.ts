@@ -4,27 +4,29 @@ import LiftbridgeMessage from './message';
 import LiftbridgeClient from './index';
 
 if (!module.parent) {
-
-    const subject = 'test5';
-    const streamName = 'test-stream-gp-5';
+    const subject = 'test7';
+    const streamName = 'test-stream-gp-7';
 
     function msg() {
-        const key = randomBytes(20).toString('hex');;
-        return new LiftbridgeMessage({ subject, key, value: `ok-${key}` });
+        const key = 'KEY-' + randomBytes(10).toString('hex');
+        return new LiftbridgeMessage({ subject, key, value: `VALUE-ok-${key}`, ackInbox: subject + '.acks', partitionStrategy: 'key' });
     }
 
-    const lbClient = new LiftbridgeClient('localhost:9292');
-    const stream = new LiftbridgeStream({ subject, name: streamName, partitions: 1 });
+    const lbClient = new LiftbridgeClient(['localhost:9292']);
+    const stream = new LiftbridgeStream({ subject, name: streamName, partitions: 3 });
 
-    lbClient.connect().then(() => {
+    lbClient.connect().then((client) => {
+        console.log('connected to -> ', client.getChannel().getTarget());
         lbClient.createStream(stream).then(response => {
             console.log('response for create stream = ', response.toObject());
-        }).finally(async () => {
-            console.log('going to publish');
-            const pubres = await lbClient.publish(msg());
-            console.log('publish result = ', pubres.toObject());
-            await lbClient.publish(msg());
-            await lbClient.publish(msg());
+        }).catch(console.error).finally(async () => {
+            console.log('going to publish', msg().toObject());
+            const pubres1 = await lbClient.publish(msg());
+            console.log('publish result 1 = ', pubres1.toObject());
+            const pubres2 = await lbClient.publish(msg());
+            console.log('publish result 2 = ', pubres2.toObject());
+            const pubres3 = await lbClient.publish(msg());
+            console.log('publish result 3 = ', pubres3.toObject());
             await lbClient.publish(msg());
             console.log('going to subscribe');
             const sub = lbClient.subscribe(stream);
