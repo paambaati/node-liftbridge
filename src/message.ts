@@ -60,14 +60,10 @@ export default class LiftbridgeMessage extends Message {
     constructor({ subject, key, value, correlationId = hyperId().uuid, headers, ackInbox, ackPolicy, partitionStrategy, partition = undefined }: ILiftbridgeMessage) {
         super();
         if (subject) this.setSubject(subject);
-        this.setValue(value);
+        this.setValue(typeof value === 'string' ? Buffer.from(value) : value);
 
         if (key) {
-            if (typeof key === 'string') {
-                this.setKey(Buffer.from(key));
-            } else {
-                this.setKey(key);
-            }
+            this.setKey(typeof key === 'string' ? Buffer.from(key) : key)
         } else {
             this.setKey(Buffer.from(''));
         }
