@@ -2,6 +2,7 @@ import { randomBytes } from 'crypto';
 import LiftbridgeStream, { StartPosition } from './stream';
 import LiftbridgeMessage, { AckPolicy } from './message';
 import LiftbridgeClient from './index';
+import { ErrorCodes } from './errors';
 
 if (!module.parent) {
     const subject = 'test7';
@@ -20,7 +21,7 @@ if (!module.parent) {
         lbClient.createStream(stream).then(response => {
             console.log('response for create stream = ', response.toObject());
         }).catch(err => {
-            if (err.code !== 'ERR_PARTITION_ALREADY_EXISTS') {
+            if (err.code !== ErrorCodes.ERR_PARTITION_ALREADY_EXISTS) {
                 throw err;
             }
         }).finally(async () => {
