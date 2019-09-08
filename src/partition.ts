@@ -3,6 +3,21 @@ import { IMetadata } from './metadata';
 import LiftbridgeMessage from './message';
 import { StreamNotFoundInMetadataError } from './errors';
 
+const subjectCounter = (function() {
+    const subjectCounterMap: Map<string, number> = new Map();
+    return {
+        add: function(key: string, value: number) {
+            return subjectCounterMap.set(key, value);
+        },
+        has: function(key: string) {
+            return subjectCounterMap.has(key);
+        },
+        get: function(key: string) {
+            return subjectCounterMap.get(key);
+        },
+    };
+})();
+
 export abstract class BasePartitioner {
     protected readonly message: LiftbridgeMessage;
     protected readonly metadata: IMetadata;
@@ -56,18 +71,17 @@ export class KeyPartitioner extends BasePartitioner {
  */
 export class RoundRobinPartitioner extends BasePartitioner {
     public calculatePartition(): number {
-        const subjectCounterMap: Map<string, number> = new Map(); // TODO: Move this into a class as a instance property.
         let key = this.message.getKey();
         if (!key) key = Buffer.from('');
         let counter = 0;
         const partitionsCount = this.getPartitionCount();
         if (partitionsCount === 0) return 0;
         const subject = this.message.getSubject();
-        if (subjectCounterMap.has(subject)) {
-            counter = <number>subjectCounterMap.get(subject);
-            subjectCounterMap.set(subject, counter++);
+        if (subjectCounter.has(subject)) {
+            counter = <number>subjectCounter.get(subject);
+            subjectCounter.add(subject, counter++);
         } else {
-            subjectCounterMap.set(subject, counter);
+            subjectCounter.add(subject, counter);
         }
         return counter % partitionsCount;
     }
