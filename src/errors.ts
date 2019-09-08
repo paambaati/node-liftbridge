@@ -78,9 +78,9 @@ export class CouldNotConnectToAnyServerError extends ConnectionError {
     message = 'Could not connect to any of the given addresses!';
 }
 
-export class StreamAlreadyExistsError extends CreateStreamError {
-    name = 'StreamAlreadyExistsError';
-    message = 'Stream already exists!';
+export class PartitionAlreadyExistsError extends CreateStreamError {
+    name = 'PartitionAlreadyExistsError';
+    message = 'Partition already exists!';
 }
 
 export class InvalidPartitionsError extends CreateStreamError {
@@ -88,9 +88,9 @@ export class InvalidPartitionsError extends CreateStreamError {
     message = `Invalid number of stream partitions! Partitions should be equal to or greater than zero.`;
 }
 
-export class NoSuchStreamError extends SubscribeError {
+export class NoSuchPartitionError extends SubscribeError {
     name = 'NoSuchStreamError';
-    message = 'No such stream exists!';
+    message = 'No such partition exists!';
 }
 
 export class StreamNotFoundInMetadataError extends MetadataError {

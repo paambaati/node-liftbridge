@@ -1,6 +1,6 @@
 import { APIClient } from '../grpc/generated/api_grpc_pb';
 import { FetchMetadataRequest, FetchMetadataResponse } from '../grpc/generated/api_pb';
-import { StreamNotFoundInMetadataError, NoSuchStreamError, NoKnownPartitionError, NoKnownLeaderForPartitionError } from './errors';
+import { StreamNotFoundInMetadataError, NoSuchPartitionError, NoKnownPartitionError, NoKnownLeaderForPartitionError } from './errors';
 import { ServiceError } from 'grpc';
 
 // Own interfaces.
@@ -164,7 +164,7 @@ export default class LiftbridgeMetadata {
      */
     public getAddress(stream: string, partition: number): string {
         const streamMetadata = this.metadata.streams.byName[stream];
-        if (!streamMetadata) throw new NoSuchStreamError();
+        if (!streamMetadata) throw new NoSuchPartitionError();
         const partitionMetadata = streamMetadata.partitions[partition];
         if (!partitionMetadata) throw new NoKnownPartitionError();
         const leader = partitionMetadata.leader;

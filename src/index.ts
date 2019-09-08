@@ -5,7 +5,7 @@ import { SubscribeRequest, Message, CreateStreamRequest, CreateStreamResponse, P
 import LiftbridgeStream from './stream';
 import LiftbridgeMessage from './message';
 import LiftbridgeMetadata from './metadata';
-import { NoAddressesError, CouldNotConnectToAnyServerError } from './errors';
+import { NoAddressesError, CouldNotConnectToAnyServerError, PartitionAlreadyExistsError } from './errors';
 import { shuffleArray, faultTolerantCall } from './utils';
 import { builtinPartitioners, BasePartitioner, PartitionerLike } from './partition';
 
@@ -67,7 +67,10 @@ export default class LiftbridgeClient {
             createRequest.setSubject(stream.subject);
             createRequest.setReplicationfactor(stream.replicationFactor);
             this.client.createStream(createRequest, (err: ServiceError | null, response: CreateStreamResponse | undefined) => {
-                if (err) return reject(err);
+                if (err) {
+                    if (err.code === 6) return reject(new PartitionAlreadyExistsError());
+                    return reject(err);
+                }
                 this.metadata.update().then(() => {
                     return resolve(response);
                 }).catch(reject);
