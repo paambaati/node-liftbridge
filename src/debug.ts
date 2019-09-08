@@ -19,7 +19,11 @@ if (!module.parent) {
         console.log('connected to -> ', client.getChannel().getTarget());
         lbClient.createStream(stream).then(response => {
             console.log('response for create stream = ', response.toObject());
-        }).catch(console.error).finally(async () => {
+        }).catch(err => {
+            if (err.code !== 'ERR_PARTITION_ALREADY_EXISTS') {
+                throw err;
+            }
+        }).finally(async () => {
             console.log('going to publish', msg().toObject());
             const pubres1 = await lbClient.publish(msg());
             console.log('publish result 1 = ', pubres1.toObject());
