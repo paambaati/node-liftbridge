@@ -2,6 +2,8 @@ import hyperId from 'hyperid';
 import { AckPolicy, AckPolicyMap, Message } from '../grpc/generated/api_pb';
 import { BuiltinPartitioners, PartitionerLike } from './partition';
 
+export { AckPolicy } from '../grpc/generated/api_pb';
+
 const envelopeCookie = Buffer.from('LIFT');
 const envelopeCookieLength = envelopeCookie.length;
 
