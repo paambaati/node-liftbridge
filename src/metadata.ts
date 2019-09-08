@@ -96,7 +96,6 @@ export default class LiftbridgeMetadata {
             partitions = [];
         });
         // TODO: figure out how to implement newMetadata.addresses
-        // TODO: THen also implement getAddrs()/getAddr()
         return latestMetadata;
     }
 
