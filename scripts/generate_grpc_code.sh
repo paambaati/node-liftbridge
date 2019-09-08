@@ -19,14 +19,14 @@ cleanup () {
 trap cleanup EXIT
 
 # Fetch Liftbridge gRPC Proto definition.
-wget https://raw.githubusercontent.com/liftbridge-io/liftbridge-grpc/0877a0cacb7a721e2e19280cff126dc2ed51912d/api.proto -O ../grpc/api.proto
+wget -nv https://raw.githubusercontent.com/liftbridge-io/liftbridge-grpc/0877a0cacb7a721e2e19280cff126dc2ed51912d/api.proto -O ../grpc/api.proto
 
 # Fetch & extract protoc.
 OS=$(uname)
 if [ "$OS" == "Darwin" ]; then
-   wget "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-osx-x86_64.zip"
+   wget -nv "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-osx-x86_64.zip"
 elif [ "$OS" == "Linux" ]; then
-   wget "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip"
+   wget -nv "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip"
 else
    echo "Unsupported operating system! Please generate this on Linux or macOS."
    exit 1
@@ -48,7 +48,7 @@ OUT_DIR="../grpc/generated"
 # Generate gRPC bindings.
 ./bin/protoc \
     --plugin="protoc-gen-ts=${PROTOC_GEN_TS_PATH}" \
-    --plugin=protoc-gen-grpc=${PROTOC_GEN_GRPC_PATH} \
+    --plugin="protoc-gen-grpc=${PROTOC_GEN_GRPC_PATH}" \
     --js_out="import_style=commonjs,binary:${OUT_DIR}" \
     --ts_out="service=grpc-node:${OUT_DIR}" \
     --grpc_out="${OUT_DIR}" \
