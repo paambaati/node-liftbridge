@@ -81,6 +81,7 @@ export default class LiftbridgeClient {
     private createSubscribeRequest(stream: LiftbridgeStream): ClientReadableStream<Message> {
         const subscribeRequest = new SubscribeRequest();
         subscribeRequest.setStream(stream.name);
+        if (stream.startPosition) subscribeRequest.setStartposition(stream.startPosition);
         // subscribeRequest.setPartition(0); // TODO: debug this
         subscribeRequest.setStartposition(stream.startPosition);
         if (stream.startOffset) {

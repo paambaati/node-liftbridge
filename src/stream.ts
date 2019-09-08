@@ -1,6 +1,8 @@
 import { StartPosition, StartPositionMap } from '../grpc/generated/api_pb';
 import { InvalidPartitionsError } from './errors';
 
+export { StartPosition, StartPositionMap };
+
 export interface ILiftbridgeStreamOptions {
     subject: string;
     name: string;
@@ -25,6 +27,7 @@ export interface ILiftbridgeStreamOptions {
     maxReplication?: boolean;
     startOffset?: number;
     startTimestamp?: number;
+    startPosition?: StartPositionMap[keyof StartPositionMap];
     /**
      * `partitions` determines how many partitions to create for a stream. If `0`,
 	 * this will behave as a stream with a single partition. If this is not
@@ -41,9 +44,9 @@ export default class LiftbridgeStream {
     private readonly maxReplication: boolean;
     public startOffset: number | undefined;
     public startTimestamp: number | undefined;
-    public startPosition: StartPositionMap[keyof StartPositionMap];
+    public startPosition: StartPositionMap[keyof StartPositionMap] | undefined;
     public partitions: number | undefined;
-    public constructor({ subject, name, group, replicationFactor = 1, maxReplication = false, startOffset, startTimestamp, partitions = 1 }: ILiftbridgeStreamOptions) {
+    public constructor({ subject, name, group, replicationFactor = 1, maxReplication = false, startOffset, startTimestamp, startPosition, partitions = 1 }: ILiftbridgeStreamOptions) {
         this.subject = subject;
         this.name = name;
         if (group) this.group = group;
@@ -55,6 +58,6 @@ export default class LiftbridgeStream {
         this.maxReplication = maxReplication;
         if (startOffset) this.startOffset = startOffset;
         if (startTimestamp) this.startTimestamp = startTimestamp;
-        this.startPosition = StartPosition.EARLIEST;
+        if (!startOffset && !this.startTimestamp) this.startPosition = startPosition || StartPosition.EARLIEST;
     }
 }
