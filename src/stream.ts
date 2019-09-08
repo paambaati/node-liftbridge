@@ -27,7 +27,7 @@ export interface ILiftbridgeStreamOptions {
     maxReplication?: boolean;
     startOffset?: number;
     startTimestamp?: number;
-    startPosition?: StartPositionMap[keyof StartPositionMap];
+    startPosition?: StartPositionMap[keyof StartPositionMap]; // TODO: Document + defaults.
     /**
      * `partitions` determines how many partitions to create for a stream. If `0`,
 	 * this will behave as a stream with a single partition. If this is not
@@ -46,7 +46,7 @@ export default class LiftbridgeStream {
     public startTimestamp: number | undefined;
     public startPosition: StartPositionMap[keyof StartPositionMap] | undefined;
     public partitions: number | undefined;
-    public constructor({ subject, name, group, replicationFactor = 1, maxReplication = false, startOffset, startTimestamp, startPosition, partitions = 1 }: ILiftbridgeStreamOptions) {
+    public constructor({ subject, name, group, replicationFactor = 1, maxReplication = false, startOffset, startTimestamp, startPosition = StartPosition.NEW_ONLY, partitions = 1 }: ILiftbridgeStreamOptions) {
         this.subject = subject;
         this.name = name;
         if (group) this.group = group;
@@ -58,6 +58,6 @@ export default class LiftbridgeStream {
         this.maxReplication = maxReplication;
         if (startOffset) this.startOffset = startOffset;
         if (startTimestamp) this.startTimestamp = startTimestamp;
-        if (!startOffset && !this.startTimestamp) this.startPosition = startPosition || StartPosition.EARLIEST;
+        if (!startOffset && !this.startTimestamp && startPosition) this.startPosition = startPosition;
     }
 }
