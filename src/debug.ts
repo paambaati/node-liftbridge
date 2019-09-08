@@ -1,5 +1,5 @@
 import { randomBytes } from 'crypto';
-import LiftbridgeStream from './stream';
+import LiftbridgeStream, { StartPosition } from './stream';
 import LiftbridgeMessage, { AckPolicy } from './message';
 import LiftbridgeClient from './index';
 
@@ -13,7 +13,7 @@ if (!module.parent) {
     }
 
     const lbClient = new LiftbridgeClient(['localhost:9292']);
-    const stream = new LiftbridgeStream({ subject, name: streamName, partitions: 3 });
+    const stream = new LiftbridgeStream({ subject, name: streamName, partitions: 1 });
 
     lbClient.connect().then((client) => {
         console.log('connected to -> ', client.getChannel().getTarget());
@@ -33,7 +33,7 @@ if (!module.parent) {
             console.log('publish result 3 = ', pubres3.toObject());
             await lbClient.publish(msg());
             console.log('going to subscribe');
-            const sub = lbClient.subscribe(stream);
+            const sub = lbClient.subscribe(new LiftbridgeStream({ subject, name: streamName, startPosition: StartPosition.EARLIEST }));
             sub.on('status', (data) => {
                 console.log('subscribe on status = ', data);
             });
