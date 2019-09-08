@@ -1,6 +1,6 @@
 import { randomBytes } from 'crypto';
 import LiftbridgeStream from './stream';
-import LiftbridgeMessage from './message';
+import LiftbridgeMessage, { AckPolicy } from './message';
 import LiftbridgeClient from './index';
 
 if (!module.parent) {
@@ -9,7 +9,7 @@ if (!module.parent) {
 
     function msg() {
         const key = 'KEY-' + randomBytes(10).toString('hex');
-        return new LiftbridgeMessage({ subject, key, value: `VALUE-ok-${key}`, ackInbox: subject + '.acks', partitionStrategy: 'key' });
+        return new LiftbridgeMessage({ subject, key, value: `VALUE-ok-${key}`, ackPolicy: AckPolicy.ALL, partitionStrategy: 'key' });
     }
 
     const lbClient = new LiftbridgeClient(['localhost:9292']);
