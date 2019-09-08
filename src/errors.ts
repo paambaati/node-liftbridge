@@ -7,24 +7,31 @@
  * Error code enums.
  */
 
-export const enum ConnectionErrorCodes {
+export enum ConnectionErrorCodes {
     ERR_NO_ADDRESSES = 'ERR_NO_ADDRESSES',
     ERR_COULD_NOT_CONNECT = 'ERR_COULD_NOT_CONNECT',
 }
 
-export const enum CreateStreamErrorCodes {
+export enum CreateStreamErrorCodes {
     ERR_PARTITION_ALREADY_EXISTS = 'ERR_PARTITION_ALREADY_EXISTS',
     ERR_INVALID_PARTITIONS = 'ERR_INVALID_PARTITIONS',
 }
 
-export const enum SubscribeErrorCodes {
+export enum SubscribeErrorCodes {
     ERR_PARTITION_DOES_NOT_EXIST = 'ERR_PARTITION_DOES_NOT_EXIST',
 }
 
-export const enum MetadataErrorCodes {
+export enum MetadataErrorCodes {
     ERR_STREAM_NOT_FOUND_IN_METADATA = 'ERR_STREAM_NOT_FOUND_IN_METADATA',
     ERR_NO_KNOWN_PARTITION = 'ERR_NO_KNOWN_PARTITION',
     ERR_NO_KNOWN_LEADER_FOR_PARTITION = 'ERR_NO_KNOWN_LEADER_FOR_PARTITION',
+}
+
+export const ErrorCodes = {
+    ...ConnectionErrorCodes,
+    ...CreateStreamErrorCodes,
+    ...SubscribeErrorCodes,
+    ...MetadataErrorCodes
 }
 
 /**
