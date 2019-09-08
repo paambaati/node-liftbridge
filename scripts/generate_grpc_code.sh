@@ -57,3 +57,6 @@ OUT_DIR="../grpc/generated"
 
 # Cleanup protoc download.
 rm -rf ./bin/
+
+# Remove exit trap.
+trap - EXIT
