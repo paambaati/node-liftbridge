@@ -23,6 +23,7 @@ export enum SubscribeErrorCodes {
 
 export enum MetadataErrorCodes {
     ERR_STREAM_NOT_FOUND_IN_METADATA = 'ERR_STREAM_NOT_FOUND_IN_METADATA',
+    ERR_SUBJECT_NOT_FOUND_IN_METADATA = 'ERR_SUBJECT_NOT_FOUND_IN_METADATA',
     ERR_NO_KNOWN_PARTITION = 'ERR_NO_KNOWN_PARTITION',
     ERR_NO_KNOWN_LEADER_FOR_PARTITION = 'ERR_NO_KNOWN_LEADER_FOR_PARTITION',
 }
@@ -116,6 +117,12 @@ export class StreamNotFoundInMetadataError extends MetadataError {
     name = 'StreamNotFoundInMetadataError';
     message = 'No matching stream found in metadata!';
     code = MetadataErrorCodes.ERR_STREAM_NOT_FOUND_IN_METADATA;
+}
+
+export class SubjectNotFoundInMetadataError extends MetadataError {
+    name = 'SubjectNotFoundInMetadataError';
+    message = 'No matching subject found in metadata!';
+    code = MetadataErrorCodes.ERR_SUBJECT_NOT_FOUND_IN_METADATA;
 }
 
 export class NoKnownPartitionError extends MetadataError {
