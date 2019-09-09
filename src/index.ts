@@ -7,7 +7,12 @@ import LiftbridgeMessage from './message';
 import LiftbridgeMetadata from './metadata';
 import { NoAddressesError, CouldNotConnectToAnyServerError, PartitionAlreadyExistsError } from './errors';
 import { shuffleArray, faultTolerantCall } from './utils';
-import { builtinPartitioners, BasePartitioner, PartitionerLike } from './partition';
+import { builtinPartitioners, PartitionerLike } from './partition';
+import { IBackOffOptions } from 'exponential-backoff/dist/options';
+
+const defaults = {
+    timeout: 5000,
+}
 
 export default class LiftbridgeClient {
     private addresses: string[];
@@ -25,7 +30,7 @@ export default class LiftbridgeClient {
         this.options = options;
     }
 
-    private connectToLiftbridge(address: string, timeout: number = 5000): Promise<APIClient> {
+    private connectToLiftbridge(address: string, timeout: number = defaults.timeout, options?: Partial<IBackOffOptions>): Promise<APIClient> {
         return faultTolerantCall(() => {
             return new Promise((resolve, reject) => {
                 console.log('attempting connection to -> ', address);
@@ -40,13 +45,13 @@ export default class LiftbridgeClient {
                     return resolve(this.client);
                 });
             });
-        });
+        }, options);
     }
 
-    public connect(timeout?: number): Promise<APIClient> { // TODO: expose fault tolerance options.
+    public connect(timeout?: number, retryOptions?: Partial<IBackOffOptions>): Promise<APIClient> {
         return new Promise((resolve, reject) => {
             // Try connecting to each Liftbridge server in random order and use the first successful connection for APIClient.
-            const connectionAttempts = shuffleArray(this.addresses).map(address => this.connectToLiftbridge(address, timeout));
+            const connectionAttempts = shuffleArray(this.addresses).map(address => this.connectToLiftbridge(address, timeout, retryOptions));
             Bluebird.any(connectionAttempts).then(client => {
                 this.client = client;
                 // Client connection succeeded. Now collect broker & partition metadata for all streams.
