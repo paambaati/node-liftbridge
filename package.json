@@ -12,7 +12,12 @@
   "private": false,
   "scripts": {
     "build": "tsc",
-    "debug": "ts-node src/debug.ts"
+    "debug": "ts-node src/debug.ts",
+    "format": "eslint --fix --ext .ts src/ && eslint --fix --config .eslintrc.test.json --ext .ts test/",
+    "lint": "eslint --ext .ts src/",
+    "lint:test": "eslint --config .eslintrc.test.json --ext .ts test/",
+    "test": "NODE_ENV=test LOG_LEVEL=silent tape -r ts-node/register/transpile-only test/*.test.ts",
+    "coverage": "rm -rf ./node_modules/.cache && rm -rf coverage/ && rm -rf .nyc_output/ && NODE_ENV=test LOG_LEVEL=silent nyc tape -r ts-node/register/transpile-only test/*.test.ts"
   },
   "dependencies": {
     "@sindresorhus/fnv1a": "1.2.0",
@@ -23,8 +28,15 @@
   },
   "devDependencies": {
     "@types/bluebird": "3.5.27",
-    "@types/node": "12.7.3",
+    "@types/node": "12.7.4",
+    "@typescript-eslint/eslint-plugin": "2.1.0",
+    "@typescript-eslint/parser": "2.1.0",
+    "eslint": "6.3.0",
+    "eslint-config-airbnb-typescript": "4.0.1",
+    "eslint-plugin-import": "2.18.2",
     "grpc-tools": "1.8.0",
+    "nyc": "14.1.1",
+    "tape": "4.11.0",
     "ts-node": "8.3.0",
     "ts-protoc-gen": "0.11.0",
     "typescript": "3.6.2"
