@@ -31,7 +31,7 @@ else
    echo "Unsupported operating system! Please generate this on Linux or macOS."
    exit 1
 fi
-unzip protoc-*.zip bin/*
+unzip -qq protoc-*.zip bin/*
 rm -f protoc-*.zip readme.txt
 
 # Calculate absolute paths for the protoc command.
