@@ -94,7 +94,6 @@ export default class LiftbridgeClient {
                 partition = message.partition
             } else {
                 if (message.partitionStrategy) {
-                    const meta = this.metadata.get();
                     let partitionerConstructor: PartitionerLike;
                     if (typeof message.partitionStrategy === 'string') {
                         partitionerConstructor = builtinPartitioners[message.partitionStrategy];
