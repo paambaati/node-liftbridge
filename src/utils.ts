@@ -26,12 +26,12 @@ export function shuffleArray(array: any[]) {
  * @param retryOptions Retry & exponential backoff options (has own defaults - read source).
  */
 export function faultTolerantCall<T>(call: () => Promise<T>, retryOptions?: Partial<IBackOffOptions>): Promise<T> {
-    const programDefaults: Partial<IBackOffOptions> = {
+    const retryDefaults: Partial<IBackOffOptions> = {
         delayFirstAttempt: false,
         numOfAttempts: 5,
         jitter: JitterTypes.Full,
         startingDelay: 0,
         timeMultiple: 1.5,
     }
-    return backOff(call, Object.assign(retryOptions || {}, programDefaults));
+    return backOff(call, Object.assign(retryOptions || {}, retryDefaults));
 }
