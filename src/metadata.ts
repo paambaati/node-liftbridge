@@ -1,7 +1,16 @@
 import { ServiceError } from 'grpc';
 import { APIClient } from '../grpc/generated/api_grpc_pb';
 import { FetchMetadataRequest, FetchMetadataResponse } from '../grpc/generated/api_pb';
-import { StreamNotFoundInMetadataError, NoSuchPartitionError, NoKnownPartitionError, NoKnownLeaderForPartitionError } from './errors';
+import { NoSuchPartitionError, NoKnownPartitionError, NoKnownLeaderForPartitionError, SubjectNotFoundInMetadataError } from './errors';
+import { faultTolerantCall } from './utils';
+
+const DEFAULTS = {
+    waitForSubjectMetadataRetryConfig: {
+        numOfAttempts: 3,
+        startingDelay: 0,
+        timeMultiple: 1,
+    },
+};
 
 /**
  * Metadata interface.
@@ -182,6 +191,16 @@ export default class LiftbridgeMetadata {
         });
     }
 
+    // Wait for subject metadata to appear until 3 metadata fetch calls.
+    private waitForSubjectMetadata(subject: string): Promise<IStreamInfo> {
+        if (this.hasSubjectMetadata(subject)) return Promise.resolve(this.metadata.streams.bySubject[subject]);
+        return faultTolerantCall(this.update, DEFAULTS.waitForSubjectMetadataRetryConfig).then(metadata => {
+            return metadata.streams.bySubject[subject];
+        }).catch(() => {
+            throw new SubjectNotFoundInMetadataError();
+        });
+    }
+
     private constructAddress(host: string, port: number): string {
         return `${host}:${port}`;
     }
@@ -195,7 +214,13 @@ export default class LiftbridgeMetadata {
      */
     public getPartitionsCountForSubject(subject: string): number {
         const subjectMeta = this.metadata.streams.bySubject[subject];
-        if (!subjectMeta) throw new StreamNotFoundInMetadataError();
+        if (!subjectMeta) {
+            this.waitForSubjectMetadata(subject).then(freshSubjectMeta => {
+                return Object.keys(freshSubjectMeta.partitions).length;
+            }).catch(err => {
+                throw err;
+            });
+        }
         return Object.keys(subjectMeta.partitions).length;
     }
 
@@ -212,6 +237,8 @@ export default class LiftbridgeMetadata {
     /**
      * `update` fetches the latest cluster metadata, including stream
      * and broker information.
+     *
+     * @returns Metadata.
      */
     public async update(): Promise<IMetadata> {
         const metadataResponse = await this.fetchMetadata();
@@ -221,6 +248,8 @@ export default class LiftbridgeMetadata {
 
     /**
      * `get` returns the cluster metadata.
+     *
+     * @returns Metadata.
      */
     public get(): IMetadata {
         return this.metadata;
@@ -228,8 +257,10 @@ export default class LiftbridgeMetadata {
 
     /**
      * `getAddr` returns the broker address for the given stream partition.
+     *
      * @param stream Stream.
      * @param partition Stream partition.
+     * @returns Broker address.
      */
     public getAddress(stream: string, partition: number): string {
         const streamMetadata = this.metadata.streams.byName[stream];
