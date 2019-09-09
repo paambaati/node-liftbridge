@@ -4,28 +4,29 @@ import LiftbridgeMessage from './message';
 import { StreamNotFoundInMetadataError } from './errors';
 
 // Module-level closure that holds a subject counter for use in the RoundRobinPartitioner.
-const subjectCounter = (function() {
+const subjectCounter = (function () {
     const subjectCounterMap: Map<string, number> = new Map();
     return {
-        add: function(key: string, value: number) {
+        add(key: string, value: number) {
             return subjectCounterMap.set(key, value);
         },
-        has: function(key: string) {
+        has(key: string) {
             return subjectCounterMap.has(key);
         },
-        get: function(key: string) {
+        get(key: string) {
             return subjectCounterMap.get(key);
         },
     };
-})();
+}());
 
 export abstract class BasePartitioner {
     protected readonly message: LiftbridgeMessage;
+
     protected readonly metadata: IMetadata;
 
     /**
      * Partitioner base class.
-     * 
+     *
      * Custom partitioners are expected to extends this class and implement
      * the `calculatePartition()` method.
      * @param message Liftbridge Message object.
@@ -112,8 +113,8 @@ export class RoundRobinPartitioner extends BasePartitioner {
  * Builtin partioners as simple strings.
  */
 export const builtinPartitioners = {
-    'key': KeyPartitioner,
-    'roundrobin': RoundRobinPartitioner,
+    key: KeyPartitioner,
+    roundrobin: RoundRobinPartitioner,
 };
 
 /**

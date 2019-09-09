@@ -3,10 +3,10 @@ import { JitterTypes } from 'exponential-backoff/dist/options';
 
 /**
  * Randomly shuffles an array.
- * 
+ *
  * Simple implementation of Durstenfeld shuffle,
  * which is a computer-ready implementation of the [Fisher-Yates shuffle](https://wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle#The_modern_algorithm).
- * 
+ *
  * @param array Array of items to shuffle.
  */
 export function shuffleArray(array: any[]) {
@@ -32,6 +32,6 @@ export function faultTolerantCall<T>(call: () => Promise<T>, retryOptions?: Part
         jitter: JitterTypes.Full,
         startingDelay: 0,
         timeMultiple: 1.5,
-    }
+    };
     return backOff(call, Object.assign(retryOptions || {}, retryDefaults));
 }

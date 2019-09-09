@@ -38,20 +38,31 @@ export interface ILiftbridgeStreamOptions {
 
 export default class LiftbridgeStream {
     public readonly subject: string;
+
     public readonly name: string;
+
     public readonly group: string | undefined;
+
     public readonly replicationFactor: number;
+
     private readonly maxReplication: boolean;
+
     public startOffset: number | undefined;
+
     public startTimestamp: number | undefined;
+
     public startPosition: StartPositionMap[keyof StartPositionMap] | undefined;
+
     public partitions: number | undefined;
+
     /**
      * Creates a Stream object.
      *
      * @param stream Stream options.
      */
-    public constructor({ subject, name, group, replicationFactor = 1, maxReplication = false, startOffset, startTimestamp, startPosition = StartPosition.NEW_ONLY, partitions = 1 }: ILiftbridgeStreamOptions) {
+    public constructor({
+        subject, name, group, replicationFactor = 1, maxReplication = false, startOffset, startTimestamp, startPosition = StartPosition.NEW_ONLY, partitions = 1,
+    }: ILiftbridgeStreamOptions) {
         this.subject = subject;
         this.name = name;
         if (group) this.group = group;

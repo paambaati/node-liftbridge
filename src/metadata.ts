@@ -1,7 +1,9 @@
 import { ServiceError } from 'grpc';
 import { APIClient } from '../grpc/generated/api_grpc_pb';
 import { FetchMetadataRequest, FetchMetadataResponse } from '../grpc/generated/api_pb';
-import { NoSuchPartitionError, NoKnownPartitionError, NoKnownLeaderForPartitionError, SubjectNotFoundInMetadataError } from './errors';
+import {
+    NoSuchPartitionError, NoKnownPartitionError, NoKnownLeaderForPartitionError, SubjectNotFoundInMetadataError,
+} from './errors';
 import { faultTolerantCall } from './utils';
 
 const DEFAULTS = {
@@ -118,6 +120,7 @@ interface IBrokerInfo {
 
 export default class LiftbridgeMetadata {
     private readonly client: APIClient;
+
     private metadata: IMetadata;
 
     /**
@@ -152,7 +155,7 @@ export default class LiftbridgeMetadata {
                 port: broker.port,
             };
         });
-    
+
         let partitions: IPartitionInfo[] = [];
         metadataList.forEach(meta => {
             meta.partitionsMap.forEach(_partitionMap => {
@@ -168,7 +171,7 @@ export default class LiftbridgeMetadata {
                 subject: meta.subject,
                 name: meta.name,
                 partitions,
-            }
+            };
             latestMetadata.streams.byName[meta.name] = streamInfo;
             latestMetadata.streams.bySubject[meta.subject] = streamInfo;
             latestMetadata.lastUpdated = new Date();
@@ -194,9 +197,7 @@ export default class LiftbridgeMetadata {
     // Wait for subject metadata to appear until 3 metadata fetch calls.
     private waitForSubjectMetadata(subject: string): Promise<IStreamInfo> {
         if (this.hasSubjectMetadata(subject)) return Promise.resolve(this.metadata.streams.bySubject[subject]);
-        return faultTolerantCall(this.update, DEFAULTS.waitForSubjectMetadataRetryConfig).then(metadata => {
-            return metadata.streams.bySubject[subject];
-        }).catch(() => {
+        return faultTolerantCall(this.update, DEFAULTS.waitForSubjectMetadataRetryConfig).then(metadata => metadata.streams.bySubject[subject]).catch(() => {
             throw new SubjectNotFoundInMetadataError();
         });
     }
@@ -215,9 +216,7 @@ export default class LiftbridgeMetadata {
     public getPartitionsCountForSubject(subject: string): number {
         const subjectMeta = this.metadata.streams.bySubject[subject];
         if (!subjectMeta) {
-            this.waitForSubjectMetadata(subject).then(freshSubjectMeta => {
-                return Object.keys(freshSubjectMeta.partitions).length;
-            }).catch(err => {
+            this.waitForSubjectMetadata(subject).then(freshSubjectMeta => Object.keys(freshSubjectMeta.partitions).length).catch(err => {
                 throw err;
             });
         }
@@ -267,7 +266,7 @@ export default class LiftbridgeMetadata {
         if (!streamMetadata) throw new NoSuchPartitionError();
         const partitionMetadata = streamMetadata.partitions[partition];
         if (!partitionMetadata) throw new NoKnownPartitionError();
-        const leader = partitionMetadata.leader;
+        const { leader } = partitionMetadata;
         if (!leader) throw new NoKnownLeaderForPartitionError();
         return this.constructAddress(leader.host, leader.port);
     }

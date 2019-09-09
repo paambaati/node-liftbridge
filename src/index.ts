@@ -1,19 +1,23 @@
 import { readFileSync } from 'fs';
 import Bluebird from 'bluebird';
-import { Client as grpcClient, credentials as grpcCredentials, ChannelCredentials, ClientReadableStream, ServiceError, Channel } from 'grpc';
+import {
+    Client as grpcClient, credentials as grpcCredentials, ChannelCredentials, ClientReadableStream, ServiceError, Channel,
+} from 'grpc';
+import { IBackOffOptions } from 'exponential-backoff/dist/options';
 import { APIClient } from '../grpc/generated/api_grpc_pb';
-import { SubscribeRequest, Message, CreateStreamRequest, CreateStreamResponse, PublishResponse, PublishRequest, FetchMetadataRequest, FetchMetadataResponse } from '../grpc/generated/api_pb';
+import {
+    SubscribeRequest, Message, CreateStreamRequest, CreateStreamResponse, PublishResponse, PublishRequest, FetchMetadataRequest, FetchMetadataResponse,
+} from '../grpc/generated/api_pb';
 import LiftbridgeStream from './stream';
 import LiftbridgeMessage from './message';
 import LiftbridgeMetadata from './metadata';
 import { NoAddressesError, CouldNotConnectToAnyServerError, PartitionAlreadyExistsError } from './errors';
 import { shuffleArray, faultTolerantCall } from './utils';
 import { builtinPartitioners, PartitionerLike } from './partition';
-import { IBackOffOptions } from 'exponential-backoff/dist/options';
 
 const DEFAULTS = {
     timeout: 5000,
-}
+};
 
 export interface ICredentials {
     /**
@@ -32,9 +36,13 @@ export interface ICredentials {
 
 export default class LiftbridgeClient {
     private addresses: string[];
+
     private options?: object;
+
     private credentials: ChannelCredentials;
+
     private client!: APIClient;
+
     private metadata!: LiftbridgeMetadata;
 
     /**
@@ -66,21 +74,19 @@ export default class LiftbridgeClient {
 
     // Make a fault-tolerant connection to the Liftbridge server.
     private connectToLiftbridge(address: string, timeout: number = DEFAULTS.timeout, options?: Partial<IBackOffOptions>): Promise<APIClient> {
-        return faultTolerantCall(() => {
-            return new Promise((resolve, reject) => {
-                console.log('attempting connection to -> ', address);
-                const connection = new grpcClient(address, this.credentials, this.options);
-                // `waitForReady` takes a deadline.
-                // Deadline is always UNIX epoch time + milliseconds in the future when you want the deadline to expire.
-                connection.waitForReady(new Date().getTime() + timeout, err => {
-                    if (err) return reject(err);
-                    this.client = new APIClient(address, this.credentials, {
-                        channelOverride: connection.getChannel(), // Reuse the working channel for APIClient.
-                    });
-                    return resolve(this.client);
+        return faultTolerantCall(() => new Promise((resolve, reject) => {
+            console.log('attempting connection to -> ', address);
+            const connection = new grpcClient(address, this.credentials, this.options);
+            // `waitForReady` takes a deadline.
+            // Deadline is always UNIX epoch time + milliseconds in the future when you want the deadline to expire.
+            connection.waitForReady(new Date().getTime() + timeout, err => {
+                if (err) return reject(err);
+                this.client = new APIClient(address, this.credentials, {
+                    channelOverride: connection.getChannel(), // Reuse the working channel for APIClient.
                 });
+                return resolve(this.client);
             });
-        }, options);
+        }), options);
     }
 
     // Find partition for the Message subject.
@@ -91,17 +97,15 @@ export default class LiftbridgeClient {
         // Calculate partition for the message by using the relevant partitioning strategy.
         if (totalPartitions > 0) {
             if (message.partition) {
-                partition = message.partition
-            } else {
-                if (message.partitionStrategy) {
-                    let partitionerConstructor: PartitionerLike;
-                    if (typeof message.partitionStrategy === 'string') {
-                        partitionerConstructor = builtinPartitioners[message.partitionStrategy];
-                    } else {
-                        partitionerConstructor = message.partitionStrategy;
-                    }
-                    partition = new partitionerConstructor(message, this.metadata.get()).calculatePartition();
+                partition = message.partition;
+            } else if (message.partitionStrategy) {
+                let partitionerConstructor: PartitionerLike;
+                if (typeof message.partitionStrategy === 'string') {
+                    partitionerConstructor = builtinPartitioners[message.partitionStrategy];
+                } else {
+                    partitionerConstructor = message.partitionStrategy;
                 }
+                partition = new partitionerConstructor(message, this.metadata.get()).calculatePartition();
             }
         }
         return partition;
@@ -142,9 +146,7 @@ export default class LiftbridgeClient {
                     if (err.code === 6) return reject(new PartitionAlreadyExistsError());
                     return reject(err);
                 }
-                this.metadata.update().then(() => {
-                    return resolve(response);
-                }).catch(reject);
+                this.metadata.update().then(() => resolve(response)).catch(reject);
             });
         });
     }
@@ -157,7 +159,7 @@ export default class LiftbridgeClient {
         if (stream.startOffset) {
             subscribeRequest.setStartoffset(stream.startOffset);
             return this.client.subscribe(subscribeRequest);
-        } else if (stream.startTimestamp) {
+        } if (stream.startTimestamp) {
             subscribeRequest.setStarttimestamp(stream.startTimestamp);
             return this.client.subscribe(subscribeRequest);
         }
@@ -193,7 +195,7 @@ export default class LiftbridgeClient {
     }
 
     private async fetchMetadata(streams?: LiftbridgeStream | LiftbridgeStream[]) {
-        let streamNames: string[] = [];
+        const streamNames: string[] = [];
         if (streams) {
             if (Array.isArray(streams)) {
                 streams.forEach(stream => streamNames.push(stream.name));
