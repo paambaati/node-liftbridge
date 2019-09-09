@@ -57,6 +57,10 @@ export interface ILiftbridgeMessage {
 export default class LiftbridgeMessage extends Message {
     public partition: number | undefined;
     public partitionStrategy: keyof BuiltinPartitioners | PartitionerLike | undefined;
+    /**
+     * Creates a Message object that is a representation of the gRPC `Message` object.
+     * @param message Message object.
+     */
     constructor({ subject, key, value, correlationId = hyperId().uuid, headers, ackInbox, ackPolicy, partitionStrategy, partition = undefined }: ILiftbridgeMessage) {
         super();
         if (subject) this.setSubject(subject);
@@ -82,7 +86,12 @@ export default class LiftbridgeMessage extends Message {
         this.setTimestamp(Date.now() * 1e6); // Time since UNIX epoch in nanoseconds.     
     }
 
-    public serializeMessage() {
+    /**
+     * Create a serialized `Message` object with the Liftbridge envelope.
+     *
+     * ℹ️ Use only when you're talking directly to NATS systems.
+     */
+    public serializeMessage(): Buffer {
         const serializedMessage = this.serializeBinary();
         return Buffer.concat([envelopeCookie, serializedMessage], envelopeCookieLength + serializedMessage.length);
     }

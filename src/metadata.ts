@@ -1,47 +1,109 @@
+import { ServiceError } from 'grpc';
 import { APIClient } from '../grpc/generated/api_grpc_pb';
 import { FetchMetadataRequest, FetchMetadataResponse } from '../grpc/generated/api_pb';
 import { StreamNotFoundInMetadataError, NoSuchPartitionError, NoKnownPartitionError, NoKnownLeaderForPartitionError } from './errors';
-import { ServiceError } from 'grpc';
 
-// Own interfaces.
+/**
+ * Metadata interface.
+ */
 export interface IMetadata {
+    /**
+     * List of brokers and their information.
+     */
     brokers: {
         [brokerId: string]: IBrokerInfo,
     };
+    /**
+     * List of addresses.
+     */
     addresses: {
         [address: string]: object,
     };
+    /**
+     * Stream metadata by name and subject.
+     */
     streams: IStreamIndex;
+    /**
+     * Last updated timestamp.
+     */
     lastUpdated: Date;
 }
 
+/**
+ * Stream information interface.
+ */
 interface IStreamInfo {
+    /**
+     * Stream subject.
+     */
     subject: string;
+    /**
+     * Stream name.
+     */
     name: string;
+    /**
+     * Partition IDs and their information.
+     */
     partitions: {
         [partitionId: number]: IPartitionInfo,
     };
 }
 
+/**
+ * Stream index interface.
+ */
 interface IStreamIndex {
+    /**
+     * Stream information by name.
+     */
     byName: {
         [name: string]: IStreamInfo,
     };
+    /**
+     * Stream information by subject.
+     */
     bySubject: {
         [subject: string]: IStreamInfo,
     };
 }
 
+/**
+ * Partition information interface.
+ */
 interface IPartitionInfo {
+    /**
+     * Partition ID.
+     */
     id: number;
+    /**
+     * Partition leader.
+     */
     leader: IBrokerInfo;
+    /**
+     * Partition replicas.
+     */
     replicas: IBrokerInfo[];
+    /**
+     * Partition's in-sync replica(s).
+     */
     isr: IBrokerInfo[];
 }
 
+/**
+ * Broker information interface.
+ */
 interface IBrokerInfo {
+    /**
+     * Unique broker ID.
+     */
     id: string;
+    /**
+     * Broker hostname.
+     */
     host: string;
+    /**
+     * Broker port.
+     */
     port: number;
 }
 
@@ -49,11 +111,19 @@ export default class LiftbridgeMetadata {
     private readonly client: APIClient;
     private metadata: IMetadata;
 
+    /**
+     * Metadata class.
+     *
+     * Holds all metadaata of brokers, streams & partitions.
+     * @param client Liftbridge client instance.
+     * @param metadataResponse `MetadataResponse` gRPC object.
+     */
     constructor(client: APIClient, metadataResponse: FetchMetadataResponse) {
         this.client = client;
         this.metadata = this.build(metadataResponse);
     }
 
+    // Turn the MetadataResponse into a neatly readable and parse-able native JSON object.
     private build(metadataResponse: FetchMetadataResponse): IMetadata {
         const latestMetadata: IMetadata = {
             brokers: {},

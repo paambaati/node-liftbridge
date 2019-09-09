@@ -46,6 +46,11 @@ export default class LiftbridgeStream {
     public startTimestamp: number | undefined;
     public startPosition: StartPositionMap[keyof StartPositionMap] | undefined;
     public partitions: number | undefined;
+    /**
+     * Creates a Stream object.
+     *
+     * @param stream Stream options.
+     */
     public constructor({ subject, name, group, replicationFactor = 1, maxReplication = false, startOffset, startTimestamp, startPosition = StartPosition.NEW_ONLY, partitions = 1 }: ILiftbridgeStreamOptions) {
         this.subject = subject;
         this.name = name;

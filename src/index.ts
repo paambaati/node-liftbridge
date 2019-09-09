@@ -10,7 +10,7 @@ import { shuffleArray, faultTolerantCall } from './utils';
 import { builtinPartitioners, PartitionerLike } from './partition';
 import { IBackOffOptions } from 'exponential-backoff/dist/options';
 
-const defaults = {
+const DEFAULTS = {
     timeout: 5000,
 }
 
@@ -21,6 +21,14 @@ export default class LiftbridgeClient {
     private client!: APIClient;
     private metadata!: LiftbridgeMetadata;
 
+    /**
+     * A simple client for use with a Liftbridge cluster.
+     * Use `.connect()` to establish a first connection.
+     *
+     * @param addresses String or array of strings of Liftbridge server addresses to connect to.
+     * @param credentials (Optional) Credentials to use.
+     * @param options (Optional) Additional options to pass on to low-level gRPC client.
+     */
     constructor(addresses: string[] | string, credentials?: ChannelCredentials, options?: object) {
         if (!addresses || addresses.length < 1) {
             throw new NoAddressesError();
@@ -30,7 +38,7 @@ export default class LiftbridgeClient {
         this.options = options;
     }
 
-    private connectToLiftbridge(address: string, timeout: number = defaults.timeout, options?: Partial<IBackOffOptions>): Promise<APIClient> {
+    private connectToLiftbridge(address: string, timeout: number = DEFAULTS.timeout, options?: Partial<IBackOffOptions>): Promise<APIClient> {
         return faultTolerantCall(() => {
             return new Promise((resolve, reject) => {
                 console.log('attempting connection to -> ', address);
@@ -48,6 +56,13 @@ export default class LiftbridgeClient {
         }, options);
     }
 
+    /**
+     * Establish a connection to the Liftbridge cluster.
+     *
+     * @param timeout (Optional) Milliseconds before the connection attempt times out.
+     * @param retryOptions (Optional) Retry & backoff options.
+     * @returns Client instance.
+     */
     public connect(timeout?: number, retryOptions?: Partial<IBackOffOptions>): Promise<APIClient> {
         return new Promise((resolve, reject) => {
             // Try connecting to each Liftbridge server in random order and use the first successful connection for APIClient.
@@ -87,7 +102,7 @@ export default class LiftbridgeClient {
         const subscribeRequest = new SubscribeRequest();
         subscribeRequest.setStream(stream.name);
         if (stream.startPosition) subscribeRequest.setStartposition(stream.startPosition);
-        // subscribeRequest.setPartition(0); // TODO: debug this
+        // subscribeRequest.setPartition(0); // TODO: debug this - figure out how best to allow to set specific partition
         if (stream.startOffset) {
             subscribeRequest.setStartoffset(stream.startOffset);
             return this.client.subscribe(subscribeRequest);
@@ -104,6 +119,7 @@ export default class LiftbridgeClient {
             const subject = message.getSubject();
             const totalPartitions = this.metadata.getPartitionsCountForSubject(subject);
             let partition: number = 0;
+            // Calculate partition for the message by using the relevant partitioning strategy.
             if (totalPartitions > 0) {
                 if (message.partition) {
                     partition = message.partition
@@ -133,7 +149,7 @@ export default class LiftbridgeClient {
         return new Promise((resolve, reject) => {
             const metadataRequest = new FetchMetadataRequest();
             if (streams && streams.length) {
-                streams.forEach(metadataRequest.addStreams);
+                streams.forEach(stream => metadataRequest.addStreams(stream));
             }
             this.client.fetchMetadata(metadataRequest, (err: ServiceError | null, response: FetchMetadataResponse | undefined) => {
                 if (err) return reject(err);
@@ -161,8 +177,9 @@ export default class LiftbridgeClient {
 	 * identifier, unique per subject. It throws `StreamAlreadyExistsError` if a
      * stream with the given subject and name already exists.
      * @param stream Stream to create.
+     * @returns CreateStreamResponse gRPC object.
      */
-    public createStream(stream: LiftbridgeStream) {
+    public createStream(stream: LiftbridgeStream): Promise<CreateStreamResponse> {
         return this.createStreamRequest(stream);
     }
 
@@ -174,8 +191,9 @@ export default class LiftbridgeClient {
 	 * if the given stream does not exist. Use `subscribe().close()` to close
      * a subscription.
      * @param stream Stream to subscribe to.
+     * @returns ReadableStream of messages.
      */
-    public subscribe(stream: LiftbridgeStream) {
+    public subscribe(stream: LiftbridgeStream): ClientReadableStream<Message> {
         const subscription = this.createSubscribeRequest(stream);
         return subscription;
     }
@@ -188,12 +206,16 @@ export default class LiftbridgeClient {
 	 * are configured, this returns the first Ack on success, otherwise it
 	 * returns nil.
      * @param message Message to publish.
+     * @returns PublishResponse gRPC object.
      */
-    public publish(message: LiftbridgeMessage) {
+    public publish(message: LiftbridgeMessage): Promise<PublishResponse> {
         const publisher = this.createPublishRequest(message);
         return publisher;
     }
 
+    /**
+     * `close` closes the client connection to the Liftbridge cluster.
+     */
     public close(): void {
         this.client.close();
     }

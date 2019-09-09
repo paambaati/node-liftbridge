@@ -3,6 +3,7 @@ import { IMetadata } from './metadata';
 import LiftbridgeMessage from './message';
 import { StreamNotFoundInMetadataError } from './errors';
 
+// Module-level closure that holds a subject counter for use in the RoundRobinPartitioner.
 const subjectCounter = (function() {
     const subjectCounterMap: Map<string, number> = new Map();
     return {
@@ -22,11 +23,20 @@ export abstract class BasePartitioner {
     protected readonly message: LiftbridgeMessage;
     protected readonly metadata: IMetadata;
 
+    /**
+     * Partitioner base class.
+     * 
+     * Custom partitioners are expected to extends this class and implement
+     * the `calculatePartition()` method.
+     * @param message Liftbridge Message object.
+     * @param metadata Metadata object.
+     */
     constructor(message: LiftbridgeMessage, metadata: IMetadata) {
         this.message = message;
         this.metadata = metadata;
     }
 
+    // Gets total number of partitions for given stream subject.
     protected getPartitionCount(): number {
         const subject = this.message.getSubject();
         const streamMeta = this.metadata.streams.bySubject[subject];
@@ -50,6 +60,11 @@ export abstract class BasePartitioner {
  * are multiple streams for the given subject.
  */
 export class KeyPartitioner extends BasePartitioner {
+    /**
+     * Calculate the partition for the given message by hashing the key.
+     *
+     * @returns Partition to send the message to.
+     */
     public calculatePartition(): number {
         let key = this.message.getKey();
         if (!key) key = Buffer.from('');
@@ -70,6 +85,12 @@ export class KeyPartitioner extends BasePartitioner {
  * streams for the given subject.
  */
 export class RoundRobinPartitioner extends BasePartitioner {
+    /**
+     * Calculate the partition for the given message by rotating the
+     * message subject in a round-robin fashion.
+     *
+     * @returns Partition to send the message to.
+     */
     public calculatePartition(): number {
         let key = this.message.getKey();
         if (!key) key = Buffer.from('');
@@ -87,10 +108,20 @@ export class RoundRobinPartitioner extends BasePartitioner {
     }
 }
 
+/**
+ * Builtin partioners as simple strings.
+ */
 export const builtinPartitioners = {
     'key': KeyPartitioner,
     'roundrobin': RoundRobinPartitioner,
 };
 
+/**
+ * Builtin partitioners as implementations of `BasePartitioner`.
+ */
 export type BuiltinPartitioners = typeof builtinPartitioners;
+
+/**
+ * Pluggable partitioner that must be an implementation of `BasePartioner`.
+ */
 export type PartitionerLike = new(message: LiftbridgeMessage, metadata: IMetadata) => BasePartitioner;
