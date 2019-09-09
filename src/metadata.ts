@@ -241,7 +241,7 @@ export default class LiftbridgeMetadata {
      */
     public async update(): Promise<IMetadata> {
         const metadataResponse = await this.fetchMetadata();
-        this.metadata = this.build(metadataResponse);
+        this.metadata = LiftbridgeMetadata.build(metadataResponse);
         return this.metadata;
     }
 
