@@ -1,5 +1,6 @@
+import { readFileSync } from 'fs';
 import Bluebird from 'bluebird';
-import { Client as grpcClient, credentials as Credentials, ChannelCredentials, ClientReadableStream, ServiceError } from 'grpc';
+import { Client as grpcClient, credentials as grpcCredentials, ChannelCredentials, ClientReadableStream, ServiceError, Channel } from 'grpc';
 import { APIClient } from '../grpc/generated/api_grpc_pb';
 import { SubscribeRequest, Message, CreateStreamRequest, CreateStreamResponse, PublishResponse, PublishRequest, FetchMetadataRequest, FetchMetadataResponse } from '../grpc/generated/api_pb';
 import LiftbridgeStream from './stream';
@@ -14,6 +15,21 @@ const DEFAULTS = {
     timeout: 5000,
 }
 
+export interface ICredentials {
+    /**
+     * Root certificate file.
+     */
+    rootCertificateFile?: string;
+    /**
+     * Client certificate private key file.
+     */
+    privateKeyFile: string;
+    /**
+     * Client certificate cert chain file.
+     */
+    certificateChainFile: string;
+}
+
 export default class LiftbridgeClient {
     private addresses: string[];
     private options?: object;
@@ -26,18 +42,29 @@ export default class LiftbridgeClient {
      * Use `.connect()` to establish a first connection.
      *
      * @param addresses String or array of strings of Liftbridge server addresses to connect to.
-     * @param credentials (Optional) Credentials to use.
-     * @param options (Optional) Additional options to pass on to low-level gRPC client.
+     * @param credentials (Optional) Credentials to use. Defaults to insecure context.
+     * @param options (Optional) [Additional options](https://grpc.github.io/grpc/core/group__grpc__arg__keys.html) to pass on to low-level gRPC client for channel creation.
      */
-    constructor(addresses: string[] | string, credentials?: ChannelCredentials, options?: object) {
+    constructor(addresses: string[] | string, credentials: ICredentials | undefined = undefined, options?: object) {
         if (!addresses || addresses.length < 1) {
             throw new NoAddressesError();
         }
         this.addresses = Array.isArray(addresses) ? addresses : [addresses];
-        this.credentials = credentials || Credentials.createInsecure();
+        this.credentials = this.loadCredentials(credentials);
         this.options = options;
     }
 
+    // Create gRPC channel credentials.
+    private loadCredentials(credentials: ICredentials | undefined): ChannelCredentials {
+        if (!credentials) return grpcCredentials.createInsecure();
+        return grpcCredentials.createSsl(
+            credentials.rootCertificateFile ? readFileSync(credentials.rootCertificateFile) : undefined,
+            credentials.privateKeyFile ? readFileSync(credentials.privateKeyFile) : undefined,
+            credentials.certificateChainFile ? readFileSync(credentials.certificateChainFile) : undefined,
+        );
+    }
+
+    // Make a fault-tolerant connection to the Liftbridge server.
     private connectToLiftbridge(address: string, timeout: number = DEFAULTS.timeout, options?: Partial<IBackOffOptions>): Promise<APIClient> {
         return faultTolerantCall(() => {
             return new Promise((resolve, reject) => {
@@ -54,6 +81,31 @@ export default class LiftbridgeClient {
                 });
             });
         }, options);
+    }
+
+    // Find partition for the Message subject.
+    private findPartition(message: LiftbridgeMessage): number {
+        const subject = message.getSubject();
+        const totalPartitions = this.metadata.getPartitionsCountForSubject(subject);
+        let partition: number = 0;
+        // Calculate partition for the message by using the relevant partitioning strategy.
+        if (totalPartitions > 0) {
+            if (message.partition) {
+                partition = message.partition
+            } else {
+                if (message.partitionStrategy) {
+                    const meta = this.metadata.get();
+                    let partitionerConstructor: PartitionerLike;
+                    if (typeof message.partitionStrategy === 'string') {
+                        partitionerConstructor = builtinPartitioners[message.partitionStrategy];
+                    } else {
+                        partitionerConstructor = message.partitionStrategy;
+                    }
+                    partition = new partitionerConstructor(message, this.metadata.get()).calculatePartition();
+                }
+            }
+        }
+        return partition;
     }
 
     /**
@@ -102,7 +154,7 @@ export default class LiftbridgeClient {
         const subscribeRequest = new SubscribeRequest();
         subscribeRequest.setStream(stream.name);
         if (stream.startPosition) subscribeRequest.setStartposition(stream.startPosition);
-        // subscribeRequest.setPartition(0); // TODO: debug this - figure out how best to allow to set specific partition
+        // subscribeRequest.setPartition(0); // TODO: debug this - figure out how best to allow to set specific partition.
         if (stream.startOffset) {
             subscribeRequest.setStartoffset(stream.startOffset);
             return this.client.subscribe(subscribeRequest);
@@ -117,26 +169,9 @@ export default class LiftbridgeClient {
         return new Promise((resolve, reject) => {
             const publishRequest = new PublishRequest();
             const subject = message.getSubject();
-            const totalPartitions = this.metadata.getPartitionsCountForSubject(subject);
-            let partition: number = 0;
-            // Calculate partition for the message by using the relevant partitioning strategy.
-            if (totalPartitions > 0) {
-                if (message.partition) {
-                    partition = message.partition
-                } else {
-                    if (message.partitionStrategy) {
-                        let partitionerConstructor: PartitionerLike;
-                        if (typeof message.partitionStrategy === 'string') {
-                            partitionerConstructor = builtinPartitioners[message.partitionStrategy];
-                        } else {
-                            partitionerConstructor = message.partitionStrategy;
-                        }
-                        partition = new partitionerConstructor(message, this.metadata.get()).calculatePartition();
-                    }
-                }
-                const updatedSubject = partition ? `${subject}.${partition}` : subject;
-                message.setSubject(updatedSubject);
-            }
+            const partition = this.findPartition(message);
+            const updatedSubject = (partition && partition > 0) ? `${subject}.${partition}` : subject;
+            message.setSubject(updatedSubject);
             publishRequest.setMessage(message);
             this.client.publish(publishRequest, (err: ServiceError | null, response: PublishResponse | undefined) => {
                 if (err) return reject(err);
