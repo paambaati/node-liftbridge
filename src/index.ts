@@ -1,6 +1,7 @@
 import { readFileSync } from 'fs';
 import { IBackOffOptions } from 'exponential-backoff/dist/options';
 import Bluebird from 'bluebird';
+import * as Debug from 'debug';
 import {
     Client as GRPCClient,
     credentials as GRPCCredentials,
@@ -26,6 +27,8 @@ import { NoAddressesError, CouldNotConnectToAnyServerError, PartitionAlreadyExis
 import { shuffleArray, faultTolerantCall } from './utils';
 import { builtinPartitioners, PartitionerLike } from './partition';
 
+const debug = Debug.debug('node-liftbridge:client');
+
 const DEFAULTS = {
     timeout: 5000,
 };
@@ -33,14 +36,20 @@ const DEFAULTS = {
 export interface ICredentials {
     /**
      * Root certificate file.
+     *
+     * Usually something like `ca.crt`
      */
     rootCertificateFile?: string;
     /**
      * Client certificate private key file.
+     *
+     * Usually something like `<something>.key`
      */
     privateKeyFile: string;
     /**
      * Client certificate cert chain file.
+     *
+     * Usually something like `<something>.crt`
      */
     certificateChainFile: string;
 }
@@ -86,11 +95,12 @@ export default class LiftbridgeClient {
     // Make a fault-tolerant connection to the Liftbridge server.
     private connectToLiftbridge(address: string, timeout: number = DEFAULTS.timeout, options?: Partial<IBackOffOptions>): Promise<APIClient> {
         return faultTolerantCall(() => new Promise((resolve, reject) => {
-            console.log('attempting connection to -> ', address);
+            debug('attempting connection to', address);
             const connection = new GRPCClient(address, this.credentials, this.options);
             // `waitForReady` takes a deadline.
             // Deadline is always UNIX epoch time + milliseconds in the future when you want the deadline to expire.
             connection.waitForReady(new Date().getTime() + timeout, err => {
+                debug('remote client connected and ready at ', address);
                 if (err) return reject(err);
                 this.client = new APIClient(address, this.credentials, {
                     channelOverride: connection.getChannel(), // Reuse the working channel for APIClient.
@@ -137,6 +147,7 @@ export default class LiftbridgeClient {
                 this.client = client;
                 // Client connection succeeded. Now collect broker & partition metadata for all streams.
                 this.fetchMetadata().then(metadataResponse => {
+                    debug('metadata fetch completed');
                     this.metadata = new LiftbridgeMetadata(this.client, metadataResponse);
                     return resolve(this.client);
                 });
@@ -152,11 +163,14 @@ export default class LiftbridgeClient {
             createRequest.setName(stream.name);
             createRequest.setSubject(stream.subject);
             createRequest.setReplicationfactor(stream.replicationFactor);
+            debug('attempting to create stream', stream.name, 'on subject', stream.subject);
             this.client.createStream(createRequest, (err: ServiceError | null, response: CreateStreamResponse | undefined) => {
                 if (err) {
+                    debug('create stream failed!');
                     if (err.code === 6) return reject(new PartitionAlreadyExistsError());
                     return reject(err);
                 }
+                debug('create stream successful');
                 return this.metadata.update()
                     .then(() => resolve(response))
                     .catch(reject);
