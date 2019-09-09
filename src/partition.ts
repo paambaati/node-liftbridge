@@ -1,10 +1,9 @@
 import fnv1a from '@sindresorhus/fnv1a';
 import { IMetadata } from './metadata';
-import LiftbridgeMessage from './message';
 import { StreamNotFoundInMetadataError } from './errors';
 
 // Module-level closure that holds a subject counter for use in the RoundRobinPartitioner.
-const subjectCounter = (function () {
+const subjectCounter = (function subjectCounter() {
     const subjectCounterMap: Map<string, number> = new Map();
     return {
         add(key: string, value: number) {
@@ -20,7 +19,9 @@ const subjectCounter = (function () {
 }());
 
 export abstract class BasePartitioner {
-    protected readonly message: LiftbridgeMessage;
+    protected readonly subject: string;
+
+    protected readonly key: string;
 
     protected readonly metadata: IMetadata;
 
@@ -32,15 +33,15 @@ export abstract class BasePartitioner {
      * @param message Liftbridge Message object.
      * @param metadata Metadata object.
      */
-    constructor(message: LiftbridgeMessage, metadata: IMetadata) {
-        this.message = message;
+    constructor(subject: string, key: string | Uint8Array, metadata: IMetadata) {
+        this.subject = subject;
+        this.key = typeof key === 'string' ? key : key.toString();
         this.metadata = metadata;
     }
 
     // Gets total number of partitions for given stream subject.
     protected getPartitionCount(): number {
-        const subject = this.message.getSubject();
-        const streamMeta = this.metadata.streams.bySubject[subject];
+        const streamMeta = this.metadata.streams.bySubject[this.subject];
         if (!streamMeta) {
             throw new StreamNotFoundInMetadataError();
         }
@@ -67,11 +68,9 @@ export class KeyPartitioner extends BasePartitioner {
      * @returns Partition to send the message to.
      */
     public calculatePartition(): number {
-        let key = this.message.getKey();
-        if (!key) key = Buffer.from('');
         const partitionsCount = this.getPartitionCount();
         if (partitionsCount === 0) return 0;
-        const partition = fnv1a(key.toString()) % partitionsCount;
+        const partition = fnv1a(this.key) % partitionsCount;
         return partition;
     }
 }
@@ -93,17 +92,14 @@ export class RoundRobinPartitioner extends BasePartitioner {
      * @returns Partition to send the message to.
      */
     public calculatePartition(): number {
-        let key = this.message.getKey();
-        if (!key) key = Buffer.from('');
         let counter = 0;
         const partitionsCount = this.getPartitionCount();
         if (partitionsCount === 0) return 0;
-        const subject = this.message.getSubject();
-        if (subjectCounter.has(subject)) {
-            counter = <number>subjectCounter.get(subject);
-            subjectCounter.add(subject, counter++);
+        if (subjectCounter.has(this.subject)) {
+            counter = <number>subjectCounter.get(this.subject);
+            subjectCounter.add(this.subject, counter += 1);
         } else {
-            subjectCounter.add(subject, counter);
+            subjectCounter.add(this.subject, counter);
         }
         return counter % partitionsCount;
     }
@@ -125,4 +121,4 @@ export type BuiltinPartitioners = typeof builtinPartitioners;
 /**
  * Pluggable partitioner that must be an implementation of `BasePartioner`.
  */
-export type PartitionerLike = new(message: LiftbridgeMessage, metadata: IMetadata) => BasePartitioner;
+export type PartitionerLike = new(subject: string, key: string | Uint8Array, metadata: IMetadata) => BasePartitioner;

@@ -132,11 +132,11 @@ export default class LiftbridgeMetadata {
      */
     constructor(client: APIClient, metadataResponse: FetchMetadataResponse) {
         this.client = client;
-        this.metadata = this.build(metadataResponse);
+        this.metadata = LiftbridgeMetadata.build(metadataResponse);
     }
 
     // Turn the MetadataResponse into a neatly readable and parse-able native JSON object.
-    private build(metadataResponse: FetchMetadataResponse): IMetadata {
+    private static build(metadataResponse: FetchMetadataResponse): IMetadata {
         const latestMetadata: IMetadata = {
             brokers: {},
             addresses: {},
@@ -202,7 +202,7 @@ export default class LiftbridgeMetadata {
         });
     }
 
-    private constructAddress(host: string, port: number): string {
+    private static constructAddress(host: string, port: number): string {
         return `${host}:${port}`;
     }
 
@@ -268,6 +268,6 @@ export default class LiftbridgeMetadata {
         if (!partitionMetadata) throw new NoKnownPartitionError();
         const { leader } = partitionMetadata;
         if (!leader) throw new NoKnownLeaderForPartitionError();
-        return this.constructAddress(leader.host, leader.port);
+        return LiftbridgeMetadata.constructAddress(leader.host, leader.port);
     }
 }

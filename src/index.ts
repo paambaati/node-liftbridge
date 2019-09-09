@@ -1,12 +1,23 @@
 import { readFileSync } from 'fs';
+import { IBackOffOptions } from 'exponential-backoff/dist/options';
 import Bluebird from 'bluebird';
 import {
-    Client as grpcClient, credentials as grpcCredentials, ChannelCredentials, ClientReadableStream, ServiceError, Channel,
+    Client as GRPCClient,
+    credentials as GRPCCredentials,
+    ChannelCredentials,
+    ClientReadableStream,
+    ServiceError,
 } from 'grpc';
-import { IBackOffOptions } from 'exponential-backoff/dist/options';
 import { APIClient } from '../grpc/generated/api_grpc_pb';
 import {
-    SubscribeRequest, Message, CreateStreamRequest, CreateStreamResponse, PublishResponse, PublishRequest, FetchMetadataRequest, FetchMetadataResponse,
+    SubscribeRequest,
+    Message,
+    CreateStreamRequest,
+    CreateStreamResponse,
+    PublishResponse,
+    PublishRequest,
+    FetchMetadataRequest,
+    FetchMetadataResponse,
 } from '../grpc/generated/api_pb';
 import LiftbridgeStream from './stream';
 import LiftbridgeMessage from './message';
@@ -53,19 +64,19 @@ export default class LiftbridgeClient {
      * @param credentials (Optional) Credentials to use. Defaults to insecure context.
      * @param options (Optional) [Additional options](https://grpc.github.io/grpc/core/group__grpc__arg__keys.html) to pass on to low-level gRPC client for channel creation.
      */
-    constructor(addresses: string[] | string, credentials: ICredentials | undefined = undefined, options?: object) {
+    constructor(addresses: string[] | string, serverCredentials: ICredentials | undefined = undefined, options?: object) {
         if (!addresses || addresses.length < 1) {
             throw new NoAddressesError();
         }
         this.addresses = Array.isArray(addresses) ? addresses : [addresses];
-        this.credentials = this.loadCredentials(credentials);
+        this.credentials = LiftbridgeClient.loadCredentials(serverCredentials);
         this.options = options;
     }
 
     // Create gRPC channel credentials.
-    private loadCredentials(credentials: ICredentials | undefined): ChannelCredentials {
-        if (!credentials) return grpcCredentials.createInsecure();
-        return grpcCredentials.createSsl(
+    private static loadCredentials(credentials: ICredentials | undefined): ChannelCredentials {
+        if (!credentials) return GRPCCredentials.createInsecure();
+        return GRPCCredentials.createSsl(
             credentials.rootCertificateFile ? readFileSync(credentials.rootCertificateFile) : undefined,
             credentials.privateKeyFile ? readFileSync(credentials.privateKeyFile) : undefined,
             credentials.certificateChainFile ? readFileSync(credentials.certificateChainFile) : undefined,
@@ -76,7 +87,7 @@ export default class LiftbridgeClient {
     private connectToLiftbridge(address: string, timeout: number = DEFAULTS.timeout, options?: Partial<IBackOffOptions>): Promise<APIClient> {
         return faultTolerantCall(() => new Promise((resolve, reject) => {
             console.log('attempting connection to -> ', address);
-            const connection = new grpcClient(address, this.credentials, this.options);
+            const connection = new GRPCClient(address, this.credentials, this.options);
             // `waitForReady` takes a deadline.
             // Deadline is always UNIX epoch time + milliseconds in the future when you want the deadline to expire.
             connection.waitForReady(new Date().getTime() + timeout, err => {
@@ -97,15 +108,15 @@ export default class LiftbridgeClient {
         // Calculate partition for the message by using the relevant partitioning strategy.
         if (totalPartitions > 0) {
             if (message.partition) {
-                partition = message.partition;
+                ({ partition } = message);
             } else if (message.partitionStrategy) {
-                let partitionerConstructor: PartitionerLike;
+                let PartitionerConstructor: PartitionerLike;
                 if (typeof message.partitionStrategy === 'string') {
-                    partitionerConstructor = builtinPartitioners[message.partitionStrategy];
+                    PartitionerConstructor = builtinPartitioners[message.partitionStrategy];
                 } else {
-                    partitionerConstructor = message.partitionStrategy;
+                    PartitionerConstructor = message.partitionStrategy;
                 }
-                partition = new partitionerConstructor(message, this.metadata.get()).calculatePartition();
+                partition = new PartitionerConstructor(subject, message.getKey(), this.metadata.get()).calculatePartition();
             }
         }
         return partition;
@@ -146,7 +157,9 @@ export default class LiftbridgeClient {
                     if (err.code === 6) return reject(new PartitionAlreadyExistsError());
                     return reject(err);
                 }
-                this.metadata.update().then(() => resolve(response)).catch(reject);
+                return this.metadata.update()
+                    .then(() => resolve(response))
+                    .catch(reject);
             });
         });
     }
@@ -209,9 +222,10 @@ export default class LiftbridgeClient {
 
     /**
      * `createStream` creates a new stream attached to a NATS subject. Subject is
-	 * the NATS subject the stream is attached to, and name is the stream
-	 * identifier, unique per subject. It throws `StreamAlreadyExistsError` if a
+     * the NATS subject the stream is attached to, and name is the stream
+     * identifier, unique per subject. It throws `StreamAlreadyExistsError` if a
      * stream with the given subject and name already exists.
+     *
      * @param stream Stream to create.
      * @returns CreateStreamResponse gRPC object.
      */
@@ -221,11 +235,12 @@ export default class LiftbridgeClient {
 
     /**
      * `subscribe` creates an ephemeral subscription for the given stream. It
-	 * begins receiving messages starting at the configured position and waits
-	 * for new messages when it reaches the end of the stream. The default
-	 * start position is the end of the stream. It throws a `NoSuchStreamError`
-	 * if the given stream does not exist. Use `subscribe().close()` to close
+     * begins receiving messages starting at the configured position and waits
+     * for new messages when it reaches the end of the stream. The default
+     * start position is the end of the stream. It throws a `NoSuchStreamError`
+     * if the given stream does not exist. Use `subscribe().close()` to close
      * a subscription.
+     *
      * @param stream Stream to subscribe to.
      * @returns ReadableStream of messages.
      */
@@ -236,11 +251,12 @@ export default class LiftbridgeClient {
 
     /**
      * `publish` publishes a new message to the NATS subject. If the AckPolicy is
-	 * not NONE and a deadline is provided, this will synchronously block until
-	 * the first ack is received. If the ack is not received in time, a
-	 * DeadlineExceeded status code is returned. If an AckPolicy and deadline
-	 * are configured, this returns the first Ack on success, otherwise it
-	 * returns nil.
+     * not NONE and a deadline is provided, this will synchronously block until
+     * the first ack is received. If the ack is not received in time, a
+     * DeadlineExceeded status code is returned. If an AckPolicy and deadline
+     * are configured, this returns the first Ack on success, otherwise it
+     * returns null.
+     *
      * @param message Message to publish.
      * @returns PublishResponse gRPC object.
      */

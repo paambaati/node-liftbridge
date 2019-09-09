@@ -11,7 +11,7 @@ import { JitterTypes } from 'exponential-backoff/dist/options';
  */
 export function shuffleArray(array: any[]) {
     const arrayCopy = array.slice();
-    for (let i = arrayCopy.length - 1; i > 0; i--) {
+    for (let i = arrayCopy.length - 1; i > 0; i -= 1) {
         const j = Math.floor(Math.random() * (i + 1));
         [arrayCopy[i], arrayCopy[j]] = [arrayCopy[j], arrayCopy[i]];
     }
