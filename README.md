@@ -34,7 +34,6 @@ npm install liftbridge
 
 - [ ] Tests & coverage
 - [ ] CI
-- [ ] Code formatting & linting (with hooks)
 - [ ] Contribution guide
 - [ ] gRPC Connection pool
 - [ ] Logging
