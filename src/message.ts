@@ -87,7 +87,6 @@ export default class LiftbridgeMessage extends Message {
         if (correlationId) this.setCorrelationid(correlationId);
         if (ackInbox) this.setAckinbox(ackInbox);
         if (!ackPolicy) this.setAckpolicy(AckPolicy.NONE);
-        this.setTimestamp((Date.now() * 1e6)); // Time since UNIX epoch in nanoseconds.
     }
 
     /**
