@@ -1,3 +1,4 @@
+import * as Debug from 'debug';
 import { ServiceError } from 'grpc';
 import { APIClient } from '../grpc/generated/api_grpc_pb';
 import { FetchMetadataRequest, FetchMetadataResponse } from '../grpc/generated/api_pb';
@@ -5,6 +6,8 @@ import {
     NoSuchPartitionError, NoKnownPartitionError, NoKnownLeaderForPartitionError, SubjectNotFoundInMetadataError,
 } from './errors';
 import { faultTolerantCall } from './utils';
+
+const debug = Debug.debug('node-liftbridge:metadata');
 
 const DEFAULTS = {
     waitForSubjectMetadataRetryConfig: {
@@ -240,6 +243,7 @@ export default class LiftbridgeMetadata {
      * @returns Metadata.
      */
     public async update(): Promise<IMetadata> {
+        debug('attempting to update metadata');
         const metadataResponse = await this.fetchMetadata();
         this.metadata = LiftbridgeMetadata.build(metadataResponse);
         return this.metadata;

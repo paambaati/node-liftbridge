@@ -100,7 +100,7 @@ export default class LiftbridgeClient {
             // `waitForReady` takes a deadline.
             // Deadline is always UNIX epoch time + milliseconds in the future when you want the deadline to expire.
             connection.waitForReady(new Date().getTime() + timeout, err => {
-                debug('remote client connected and ready at ', address);
+                debug('remote client connected and ready at', address);
                 if (err) return reject(err);
                 this.client = new APIClient(address, this.credentials, {
                     channelOverride: connection.getChannel(), // Reuse the working channel for APIClient.
@@ -129,6 +129,7 @@ export default class LiftbridgeClient {
                 partition = new PartitionerConstructor(subject, message.getKey(), this.metadata.get()).calculatePartition();
             }
         }
+        debug('calculated partition for message on subject', subject, partition);
         return partition;
     }
 
@@ -166,7 +167,7 @@ export default class LiftbridgeClient {
             debug('attempting to create stream', stream.name, 'on subject', stream.subject);
             this.client.createStream(createRequest, (err: ServiceError | null, response: CreateStreamResponse | undefined) => {
                 if (err) {
-                    debug('create stream failed!');
+                    debug('create stream failed! error code =', err.code);
                     if (err.code === 6) return reject(new PartitionAlreadyExistsError());
                     return reject(err);
                 }
@@ -184,12 +185,15 @@ export default class LiftbridgeClient {
         if (stream.startPosition) subscribeRequest.setStartposition(stream.startPosition);
         // subscribeRequest.setPartition(0); // TODO: debug this - figure out how best to allow to set specific partition.
         if (stream.startOffset) {
+            debug('attempting to subscribe to stream', stream.name, 'at offset', stream.startOffset);
             subscribeRequest.setStartoffset(stream.startOffset);
             return this.client.subscribe(subscribeRequest);
         } if (stream.startTimestamp) {
+            debug('attempting to subscribe to stream', stream.name, 'at timestamp', stream.startTimestamp);
             subscribeRequest.setStarttimestamp(stream.startTimestamp);
             return this.client.subscribe(subscribeRequest);
         }
+        debug('attempting to subscribe to stream', stream.name);
         return this.client.subscribe(subscribeRequest);
     }
 
@@ -201,6 +205,7 @@ export default class LiftbridgeClient {
             const updatedSubject = (partition && partition > 0) ? `${subject}.${partition}` : subject;
             message.setSubject(updatedSubject);
             publishRequest.setMessage(message);
+            debug('going to publish message to', updatedSubject, 'with key', message.getKey().toString());
             this.client.publish(publishRequest, (err: ServiceError | null, response: PublishResponse | undefined) => {
                 if (err) return reject(err);
                 return resolve(response);
@@ -214,6 +219,7 @@ export default class LiftbridgeClient {
             if (streams && streams.length) {
                 streams.forEach(stream => metadataRequest.addStreams(stream));
             }
+            debug('going to fetch metadata');
             this.client.fetchMetadata(metadataRequest, (err: ServiceError | null, response: FetchMetadataResponse | undefined) => {
                 if (err) return reject(err);
                 return resolve(response);
