@@ -1,5 +1,5 @@
 import { StartPosition, StartPositionMap } from '../grpc/generated/api_pb';
-import { InvalidPartitionsError } from './errors';
+import { InvalidPartitionsError, OffsetNotSpecifiedError } from './errors';
 
 export { StartPosition, StartPositionMap };
 
@@ -75,5 +75,6 @@ export default class LiftbridgeStream {
         if (startOffset) this.startOffset = startOffset;
         if (startTimestamp) this.startTimestamp = startTimestamp;
         if (!startOffset && !this.startTimestamp && startPosition) this.startPosition = startPosition;
+        if (startPosition === StartPosition.OFFSET && !startOffset) throw new OffsetNotSpecifiedError();
     }
 }

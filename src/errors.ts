@@ -19,6 +19,7 @@ export enum CreateStreamErrorCodes {
 
 export enum SubscribeErrorCodes {
     ERR_PARTITION_DOES_NOT_EXIST = 'ERR_PARTITION_DOES_NOT_EXIST',
+    ERR_OFFSET_NOT_SPECIFIED = 'ERR_OFFSET_NOT_SPECIFIED',
 }
 
 export enum MetadataErrorCodes {
@@ -121,6 +122,14 @@ export class NoSuchPartitionError extends SubscribeError {
     message = 'No such partition exists!';
 
     code = SubscribeErrorCodes.ERR_PARTITION_DOES_NOT_EXIST;
+}
+
+export class OffsetNotSpecifiedError extends SubscribeError {
+    name = 'OffsetNotSpecifiedError';
+
+    message = 'Offset must be specified when startPosition is set to OFFSET!';
+
+    code = SubscribeErrorCodes.ERR_OFFSET_NOT_SPECIFIED;
 }
 
 export class StreamNotFoundInMetadataError extends MetadataError {
