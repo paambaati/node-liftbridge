@@ -65,11 +65,11 @@ export class SubscribeRequest extends jspb.Message {
   getStartposition(): StartPositionMap[keyof StartPositionMap];
   setStartposition(value: StartPositionMap[keyof StartPositionMap]): void;
 
-  getStartoffset(): number;
-  setStartoffset(value: number): void;
+  getStartoffset(): string;
+  setStartoffset(value: string): void;
 
-  getStarttimestamp(): number;
-  setStarttimestamp(value: number): void;
+  getStarttimestamp(): string;
+  setStarttimestamp(value: string): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): SubscribeRequest.AsObject;
@@ -86,8 +86,8 @@ export namespace SubscribeRequest {
     stream: string,
     partition: number,
     startposition: StartPositionMap[keyof StartPositionMap],
-    startoffset: number,
-    starttimestamp: number,
+    startoffset: string,
+    starttimestamp: string,
   }
 }
 
@@ -288,8 +288,8 @@ export namespace PartitionMetadata {
 }
 
 export class Message extends jspb.Message {
-  getOffset(): number;
-  setOffset(value: number): void;
+  getOffset(): string;
+  setOffset(value: string): void;
 
   getKey(): Uint8Array | string;
   getKey_asU8(): Uint8Array;
@@ -301,8 +301,8 @@ export class Message extends jspb.Message {
   getValue_asB64(): string;
   setValue(value: Uint8Array | string): void;
 
-  getTimestamp(): number;
-  setTimestamp(value: number): void;
+  getTimestamp(): string;
+  setTimestamp(value: string): void;
 
   getSubject(): string;
   setSubject(value: string): void;
@@ -333,10 +333,10 @@ export class Message extends jspb.Message {
 
 export namespace Message {
   export type AsObject = {
-    offset: number,
+    offset: string,
     key: Uint8Array | string,
     value: Uint8Array | string,
-    timestamp: number,
+    timestamp: string,
     subject: string,
     reply: string,
     headersMap: Array<[string, Uint8Array | string]>,
@@ -356,8 +356,8 @@ export class Ack extends jspb.Message {
   getMsgsubject(): string;
   setMsgsubject(value: string): void;
 
-  getOffset(): number;
-  setOffset(value: number): void;
+  getOffset(): string;
+  setOffset(value: string): void;
 
   getAckinbox(): string;
   setAckinbox(value: string): void;
@@ -383,7 +383,7 @@ export namespace Ack {
     stream: string,
     partitionsubject: string,
     msgsubject: string,
-    offset: number,
+    offset: string,
     ackinbox: string,
     correlationid: string,
     ackpolicy: AckPolicyMap[keyof AckPolicyMap],

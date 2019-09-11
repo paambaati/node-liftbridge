@@ -650,8 +650,8 @@ proto.proto.SubscribeRequest.toObject = function(includeInstance, msg) {
     stream: jspb.Message.getFieldWithDefault(msg, 1, ""),
     partition: jspb.Message.getFieldWithDefault(msg, 2, 0),
     startposition: jspb.Message.getFieldWithDefault(msg, 3, 0),
-    startoffset: jspb.Message.getFieldWithDefault(msg, 4, 0),
-    starttimestamp: jspb.Message.getFieldWithDefault(msg, 5, 0)
+    startoffset: jspb.Message.getFieldWithDefault(msg, 4, "0"),
+    starttimestamp: jspb.Message.getFieldWithDefault(msg, 5, "0")
   };
 
   if (includeInstance) {
@@ -701,11 +701,11 @@ proto.proto.SubscribeRequest.deserializeBinaryFromReader = function(msg, reader)
       msg.setStartposition(value);
       break;
     case 4:
-      var value = /** @type {number} */ (reader.readInt64());
+      var value = /** @type {string} */ (reader.readInt64String());
       msg.setStartoffset(value);
       break;
     case 5:
-      var value = /** @type {number} */ (reader.readInt64());
+      var value = /** @type {string} */ (reader.readInt64String());
       msg.setStarttimestamp(value);
       break;
     default:
@@ -759,15 +759,15 @@ proto.proto.SubscribeRequest.serializeBinaryToWriter = function(message, writer)
     );
   }
   f = message.getStartoffset();
-  if (f !== 0) {
-    writer.writeInt64(
+  if (parseInt(f, 10) !== 0) {
+    writer.writeInt64String(
       4,
       f
     );
   }
   f = message.getStarttimestamp();
-  if (f !== 0) {
-    writer.writeInt64(
+  if (parseInt(f, 10) !== 0) {
+    writer.writeInt64String(
       5,
       f
     );
@@ -822,31 +822,31 @@ proto.proto.SubscribeRequest.prototype.setStartposition = function(value) {
 
 /**
  * optional int64 startOffset = 4;
- * @return {number}
+ * @return {string}
  */
 proto.proto.SubscribeRequest.prototype.getStartoffset = function() {
-  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 4, 0));
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, "0"));
 };
 
 
-/** @param {number} value */
+/** @param {string} value */
 proto.proto.SubscribeRequest.prototype.setStartoffset = function(value) {
-  jspb.Message.setProto3IntField(this, 4, value);
+  jspb.Message.setProto3StringIntField(this, 4, value);
 };
 
 
 /**
  * optional int64 startTimestamp = 5;
- * @return {number}
+ * @return {string}
  */
 proto.proto.SubscribeRequest.prototype.getStarttimestamp = function() {
-  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 5, 0));
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 5, "0"));
 };
 
 
-/** @param {number} value */
+/** @param {string} value */
 proto.proto.SubscribeRequest.prototype.setStarttimestamp = function(value) {
-  jspb.Message.setProto3IntField(this, 5, value);
+  jspb.Message.setProto3StringIntField(this, 5, value);
 };
 
 
@@ -2183,10 +2183,10 @@ proto.proto.Message.prototype.toObject = function(opt_includeInstance) {
  */
 proto.proto.Message.toObject = function(includeInstance, msg) {
   var f, obj = {
-    offset: jspb.Message.getFieldWithDefault(msg, 1, 0),
+    offset: jspb.Message.getFieldWithDefault(msg, 1, "0"),
     key: msg.getKey_asB64(),
     value: msg.getValue_asB64(),
-    timestamp: jspb.Message.getFieldWithDefault(msg, 4, 0),
+    timestamp: jspb.Message.getFieldWithDefault(msg, 4, "0"),
     subject: jspb.Message.getFieldWithDefault(msg, 5, ""),
     reply: jspb.Message.getFieldWithDefault(msg, 6, ""),
     headersMap: (f = msg.getHeadersMap()) ? f.toObject(includeInstance, undefined) : [],
@@ -2230,7 +2230,7 @@ proto.proto.Message.deserializeBinaryFromReader = function(msg, reader) {
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = /** @type {number} */ (reader.readInt64());
+      var value = /** @type {string} */ (reader.readInt64String());
       msg.setOffset(value);
       break;
     case 2:
@@ -2242,7 +2242,7 @@ proto.proto.Message.deserializeBinaryFromReader = function(msg, reader) {
       msg.setValue(value);
       break;
     case 4:
-      var value = /** @type {number} */ (reader.readInt64());
+      var value = /** @type {string} */ (reader.readInt64String());
       msg.setTimestamp(value);
       break;
     case 5:
@@ -2301,8 +2301,8 @@ proto.proto.Message.prototype.serializeBinary = function() {
 proto.proto.Message.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
   f = message.getOffset();
-  if (f !== 0) {
-    writer.writeInt64(
+  if (parseInt(f, 10) !== 0) {
+    writer.writeInt64String(
       1,
       f
     );
@@ -2322,8 +2322,8 @@ proto.proto.Message.serializeBinaryToWriter = function(message, writer) {
     );
   }
   f = message.getTimestamp();
-  if (f !== 0) {
-    writer.writeInt64(
+  if (parseInt(f, 10) !== 0) {
+    writer.writeInt64String(
       4,
       f
     );
@@ -2372,16 +2372,16 @@ proto.proto.Message.serializeBinaryToWriter = function(message, writer) {
 
 /**
  * optional int64 offset = 1;
- * @return {number}
+ * @return {string}
  */
 proto.proto.Message.prototype.getOffset = function() {
-  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 1, 0));
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, "0"));
 };
 
 
-/** @param {number} value */
+/** @param {string} value */
 proto.proto.Message.prototype.setOffset = function(value) {
-  jspb.Message.setProto3IntField(this, 1, value);
+  jspb.Message.setProto3StringIntField(this, 1, value);
 };
 
 
@@ -2465,16 +2465,16 @@ proto.proto.Message.prototype.setValue = function(value) {
 
 /**
  * optional int64 timestamp = 4;
- * @return {number}
+ * @return {string}
  */
 proto.proto.Message.prototype.getTimestamp = function() {
-  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 4, 0));
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, "0"));
 };
 
 
-/** @param {number} value */
+/** @param {string} value */
 proto.proto.Message.prototype.setTimestamp = function(value) {
-  jspb.Message.setProto3IntField(this, 4, value);
+  jspb.Message.setProto3StringIntField(this, 4, value);
 };
 
 
@@ -2609,7 +2609,7 @@ proto.proto.Ack.toObject = function(includeInstance, msg) {
     stream: jspb.Message.getFieldWithDefault(msg, 1, ""),
     partitionsubject: jspb.Message.getFieldWithDefault(msg, 2, ""),
     msgsubject: jspb.Message.getFieldWithDefault(msg, 3, ""),
-    offset: jspb.Message.getFieldWithDefault(msg, 4, 0),
+    offset: jspb.Message.getFieldWithDefault(msg, 4, "0"),
     ackinbox: jspb.Message.getFieldWithDefault(msg, 5, ""),
     correlationid: jspb.Message.getFieldWithDefault(msg, 6, ""),
     ackpolicy: jspb.Message.getFieldWithDefault(msg, 7, 0)
@@ -2662,7 +2662,7 @@ proto.proto.Ack.deserializeBinaryFromReader = function(msg, reader) {
       msg.setMsgsubject(value);
       break;
     case 4:
-      var value = /** @type {number} */ (reader.readInt64());
+      var value = /** @type {string} */ (reader.readInt64String());
       msg.setOffset(value);
       break;
     case 5:
@@ -2728,8 +2728,8 @@ proto.proto.Ack.serializeBinaryToWriter = function(message, writer) {
     );
   }
   f = message.getOffset();
-  if (f !== 0) {
-    writer.writeInt64(
+  if (parseInt(f, 10) !== 0) {
+    writer.writeInt64String(
       4,
       f
     );
@@ -2805,16 +2805,16 @@ proto.proto.Ack.prototype.setMsgsubject = function(value) {
 
 /**
  * optional int64 offset = 4;
- * @return {number}
+ * @return {string}
  */
 proto.proto.Ack.prototype.getOffset = function() {
-  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 4, 0));
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, "0"));
 };
 
 
-/** @param {number} value */
+/** @param {string} value */
 proto.proto.Ack.prototype.setOffset = function(value) {
-  jspb.Message.setProto3IntField(this, 4, value);
+  jspb.Message.setProto3StringIntField(this, 4, value);
 };
 
 
