@@ -46,7 +46,7 @@ PROTOC_GEN_TS_PATH="${NODE_MODULES_BIN_DIR}/protoc-gen-ts"
 PROTOC_GEN_GRPC_PATH="${NODE_MODULES_BIN_DIR}/grpc_tools_node_protoc_plugin"
 
 # Directory to write generated code to (.js and .d.ts files) 
-OUT_DIR="../grpc/generated_test"
+OUT_DIR="../grpc/generated"
 mkdir -p ${OUT_DIR}
 
 echo "Running static code generator..."
