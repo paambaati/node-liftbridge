@@ -198,11 +198,15 @@ export default class LiftbridgeMetadata {
     }
 
     // Wait for subject metadata to appear until 3 metadata fetch calls.
-    private waitForSubjectMetadata(subject: string): Promise<IStreamInfo> {
+    private async waitForSubjectMetadata(subject: string): Promise<IStreamInfo> {
         if (this.hasSubjectMetadata(subject)) return Promise.resolve(this.metadata.streams.bySubject[subject]);
-        return faultTolerantCall(this.update, DEFAULTS.waitForSubjectMetadataRetryConfig).then(metadata => metadata.streams.bySubject[subject]).catch(() => {
+        try {
+            const metadata = await faultTolerantCall(this.update, DEFAULTS.waitForSubjectMetadataRetryConfig);
+            return metadata.streams.bySubject[subject];
+        }
+        catch (e) {
             throw new SubjectNotFoundInMetadataError();
-        });
+        }
     }
 
     private static constructAddress(host: string, port: number): string {
@@ -216,14 +220,14 @@ export default class LiftbridgeMetadata {
      *
      * @param subject Subject to fetch partitions count for.
      */
-    public getPartitionsCountForSubject(subject: string): number {
+    public async getPartitionsCountForSubject(subject: string): Promise<number> {
         const subjectMeta = this.metadata.streams.bySubject[subject];
         if (!subjectMeta) {
-            this.waitForSubjectMetadata(subject).then(freshSubjectMeta => Object.keys(freshSubjectMeta.partitions).length).catch(err => {
-                throw err;
-            });
+            const freshSubjectMeta = await this.waitForSubjectMetadata(subject);
+            return Object.keys(freshSubjectMeta.partitions).length;
+        } else {
+            return Object.keys(subjectMeta.partitions).length;
         }
-        return Object.keys(subjectMeta.partitions).length;
     }
 
     /**

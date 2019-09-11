@@ -23,7 +23,7 @@ import {
 import LiftbridgeStream from './stream';
 import LiftbridgeMessage from './message';
 import LiftbridgeMetadata from './metadata';
-import { NoAddressesError, CouldNotConnectToAnyServerError, PartitionAlreadyExistsError } from './errors';
+import { NoAddressesError, CouldNotConnectToAnyServerError, PartitionAlreadyExistsError, DeadlineExceededError } from './errors';
 import { shuffleArray, faultTolerantCall } from './utils';
 import { builtinPartitioners, PartitionerLike } from './partition';
 
@@ -92,14 +92,18 @@ export default class LiftbridgeClient {
         );
     }
 
+    // Deadline is always UNIX epoch time + milliseconds in the future when you want the deadline to expire.
+    private static getDeadline(timeout: number = DEFAULTS.timeout) {
+        return new Date().getTime() + timeout;
+    }
+
     // Make a fault-tolerant connection to the Liftbridge server.
     private connectToLiftbridge(address: string, timeout: number = DEFAULTS.timeout, options?: Partial<IBackOffOptions>): Promise<APIClient> {
         return faultTolerantCall(() => new Promise((resolve, reject) => {
             debug('attempting connection to', address);
             const connection = new GRPCClient(address, this.credentials, this.options);
             // `waitForReady` takes a deadline.
-            // Deadline is always UNIX epoch time + milliseconds in the future when you want the deadline to expire.
-            connection.waitForReady(new Date().getTime() + timeout, err => {
+            connection.waitForReady(LiftbridgeClient.getDeadline(), err => {
                 debug('remote client connected and ready at', address);
                 if (err) return reject(err);
                 this.client = new APIClient(address, this.credentials, {
@@ -111,9 +115,9 @@ export default class LiftbridgeClient {
     }
 
     // Find partition for the Message subject.
-    private findPartition(message: LiftbridgeMessage): number {
+    private async findPartition(message: LiftbridgeMessage): Promise<number> {
         const subject = message.getSubject();
-        const totalPartitions = this.metadata.getPartitionsCountForSubject(subject);
+        const totalPartitions = await this.metadata.getPartitionsCountForSubject(subject);
         let partition: number = 0;
         // Calculate partition for the message by using the relevant partitioning strategy.
         if (totalPartitions > 0) {
@@ -198,10 +202,10 @@ export default class LiftbridgeClient {
     }
 
     private createPublishRequest(message: LiftbridgeMessage): Promise<PublishResponse> {
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             const publishRequest = new PublishRequest();
             const subject = message.getSubject();
-            const partition = this.findPartition(message);
+            const partition = await this.findPartition(message);
             const updatedSubject = (partition && partition > 0) ? `${subject}.${partition}` : subject;
             message.setSubject(updatedSubject);
             publishRequest.setMessage(message);
@@ -219,9 +223,12 @@ export default class LiftbridgeClient {
             if (streams && streams.length) {
                 streams.forEach(stream => metadataRequest.addStreams(stream));
             }
-            debug('going to fetch metadata');
-            this.client.fetchMetadata(metadataRequest, (err: ServiceError | null, response: FetchMetadataResponse | undefined) => {
-                if (err) return reject(err);
+            debug('going to fetch metadata -> ', streams);
+            this.client.fetchMetadata(metadataRequest, { deadline: LiftbridgeClient.getDeadline() }, (err: ServiceError | null, response: FetchMetadataResponse | undefined) => {
+                if (err) {
+                    if (err.code === 4) return reject(new DeadlineExceededError()); // TODO: move getting/setting deadline and handling error codes to a generic method.
+                    return reject(err);
+                }
                 return resolve(response);
             });
         });
