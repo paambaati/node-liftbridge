@@ -118,9 +118,10 @@ export default class LiftbridgeMessage extends Message {
             ...messageWithoutHeadersMap,
             key: Buffer.from(rawObject.key.toString(), 'base64').toString('utf8'),
             value: Buffer.from(rawObject.value.toString(), 'base64').toString('utf8'),
-            headers: rawObject.headersMap.reduce((key, val) => {
-                key[val[0]] = typeof val[1] === 'string' ? val[1] : Buffer.from(val[1]).toString('utf8');
-                return key;
+            headers: rawObject.headersMap.reduce((k, v) => {
+                const nk = { ...k };
+                nk[v[0]] = typeof v[1] === 'string' ? v[1] : Buffer.from(v[1]).toString('utf8');
+                return nk;
             }, {}),
         };
     }
