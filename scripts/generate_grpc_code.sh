@@ -19,18 +19,21 @@ cleanup () {
 trap cleanup EXIT
 
 # Fetch Liftbridge gRPC Proto definition.
-wget -nv https://raw.githubusercontent.com/liftbridge-io/liftbridge-grpc/5694b15f251d2ff16d7d4c3e8d944aab327d3ef0/api.proto -O ../grpc/api.proto
+wget -q https://raw.githubusercontent.com/liftbridge-io/liftbridge-grpc/5694b15f251d2ff16d7d4c3e8d944aab327d3ef0/api.proto -O ../grpc/api.proto
+echo "Downloaded Liftbridge Proto file..."
 
 # Fetch & extract protoc.
 OS=$(uname)
 if [ "$OS" == "Darwin" ]; then
-   wget -nv "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-osx-x86_64.zip"
+   wget -q "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-osx-x86_64.zip"
 elif [ "$OS" == "Linux" ]; then
-   wget -nv "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip"
+   wget -q "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip"
 else
    echo "Unsupported operating system! Please generate this on Linux or macOS."
    exit 1
 fi
+echo "Downloaded Google Protobuf compiler..."
+
 unzip -qq protoc-*.zip bin/*
 rm -f protoc-*.zip readme.txt
 
@@ -46,6 +49,7 @@ PROTOC_GEN_GRPC_PATH="${NODE_MODULES_BIN_DIR}/grpc_tools_node_protoc_plugin"
 OUT_DIR="../grpc/generated_test"
 mkdir -p ${OUT_DIR}
 
+echo "Running static code generator..."
 # Generate gRPC bindings.
 ./bin/protoc \
     --plugin="protoc-gen-ts=${PROTOC_GEN_TS_PATH}" \
@@ -61,3 +65,5 @@ rm -rf ./bin/
 
 # Remove exit trap.
 trap - EXIT
+
+echo "Done generating!"
