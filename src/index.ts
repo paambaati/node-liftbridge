@@ -186,11 +186,11 @@ export default class LiftbridgeClient {
         // subscribeRequest.setPartition(0); // TODO: debug this - figure out how best to allow to set specific partition.
         if (stream.startOffset) {
             debug('attempting to subscribe to stream', stream.name, 'at offset', stream.startOffset);
-            subscribeRequest.setStartoffset(stream.startOffset);
+            subscribeRequest.setStartoffset(stream.startOffset.toString());
             return this.client.subscribe(subscribeRequest);
         } if (stream.startTimestamp) {
             debug('attempting to subscribe to stream', stream.name, 'at timestamp', stream.startTimestamp);
-            subscribeRequest.setStarttimestamp(stream.startTimestamp);
+            subscribeRequest.setStarttimestamp(stream.startTimestamp.toString());
             return this.client.subscribe(subscribeRequest);
         }
         debug('attempting to subscribe to stream', stream.name);
