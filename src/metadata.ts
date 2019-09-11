@@ -203,8 +203,7 @@ export default class LiftbridgeMetadata {
         try {
             const metadata = await faultTolerantCall(this.update, DEFAULTS.waitForSubjectMetadataRetryConfig);
             return metadata.streams.bySubject[subject];
-        }
-        catch (e) {
+        } catch (e) {
             throw new SubjectNotFoundInMetadataError();
         }
     }
@@ -225,9 +224,8 @@ export default class LiftbridgeMetadata {
         if (!subjectMeta) {
             const freshSubjectMeta = await this.waitForSubjectMetadata(subject);
             return Object.keys(freshSubjectMeta.partitions).length;
-        } else {
-            return Object.keys(subjectMeta.partitions).length;
         }
+        return Object.keys(subjectMeta.partitions).length;
     }
 
     /**
