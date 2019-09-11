@@ -93,9 +93,35 @@ export default class LiftbridgeMessage extends Message {
      * Create a serialized `Message` object with the Liftbridge envelope.
      *
      * ℹ️ Use only when you're talking directly to NATS systems.
+     *
+     * @returns Buffer of Protobuf message.
      */
     public serializeMessage(): Buffer {
         const serializedMessage = this.serializeBinary();
         return Buffer.concat([envelopeCookie, serializedMessage], envelopeCookieLength + serializedMessage.length);
+    }
+
+    /**
+     * Returns a deserialized `Message` in JSON form.
+     *
+     * Buffers & byte-arrays are deserialized to UTF-8 strings,
+     * and maps of the form [[k1, v1], [k2, v2]] are converted to
+     * objects of the form { k1: v1, k2, v2 }.
+     *
+     * @param message Liftbridge `Message` to deserialize.
+     * @returns JSON form of given `Message`.
+     */
+    public static toJSON(message: Message): ILiftbridgeMessage {
+        const rawObject = message.toObject();
+        const { headersMap, ...messageWithoutHeadersMap } = rawObject;
+        return {
+            ...messageWithoutHeadersMap,
+            key: Buffer.from(rawObject.key.toString(), 'base64').toString('utf8'),
+            value: Buffer.from(rawObject.value.toString(), 'base64').toString('utf8'),
+            headers: rawObject.headersMap.reduce((key, val) => {
+                key[val[0]] = typeof val[1] === 'string' ? val[1] : Buffer.from(val[1]).toString('utf8');
+                return key;
+            }, {}),
+        };
     }
 }
