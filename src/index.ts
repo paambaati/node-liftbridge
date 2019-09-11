@@ -23,7 +23,9 @@ import {
 import LiftbridgeStream from './stream';
 import LiftbridgeMessage from './message';
 import LiftbridgeMetadata from './metadata';
-import { NoAddressesError, CouldNotConnectToAnyServerError, PartitionAlreadyExistsError, DeadlineExceededError } from './errors';
+import {
+    NoAddressesError, CouldNotConnectToAnyServerError, PartitionAlreadyExistsError, DeadlineExceededError,
+} from './errors';
 import { shuffleArray, faultTolerantCall } from './utils';
 import { builtinPartitioners, PartitionerLike } from './partition';
 
@@ -98,12 +100,12 @@ export default class LiftbridgeClient {
     }
 
     // Make a fault-tolerant connection to the Liftbridge server.
-    private connectToLiftbridge(address: string, timeout: number = DEFAULTS.timeout, options?: Partial<IBackOffOptions>): Promise<APIClient> {
+    private connectToLiftbridge(address: string, timeout?: number, options?: Partial<IBackOffOptions>): Promise<APIClient> {
         return faultTolerantCall(() => new Promise((resolve, reject) => {
             debug('attempting connection to', address);
             const connection = new GRPCClient(address, this.credentials, this.options);
             // `waitForReady` takes a deadline.
-            connection.waitForReady(LiftbridgeClient.getDeadline(), err => {
+            connection.waitForReady(LiftbridgeClient.getDeadline(timeout), err => {
                 debug('remote client connected and ready at', address);
                 if (err) return reject(err);
                 this.client = new APIClient(address, this.credentials, {
