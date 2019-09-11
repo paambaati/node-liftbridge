@@ -10,6 +10,7 @@
 export enum ConnectionErrorCodes {
     ERR_NO_ADDRESSES = 'ERR_NO_ADDRESSES',
     ERR_COULD_NOT_CONNECT = 'ERR_COULD_NOT_CONNECT',
+    ERR_DEADLINE_EXCEEDED = 'ERR_DEADLINE_EXCEEDED',
 }
 
 export enum CreateStreamErrorCodes {
@@ -98,6 +99,14 @@ export class CouldNotConnectToAnyServerError extends ConnectionError {
     message = 'Could not connect to any of the given addresses!';
 
     code = ConnectionErrorCodes.ERR_COULD_NOT_CONNECT;
+}
+
+export class DeadlineExceededError extends ConnectionError {
+    name = 'DeadlineExceededError';
+
+    message = 'Could not get back a response within the deadline!';
+
+    code = ConnectionErrorCodes.ERR_DEADLINE_EXCEEDED;
 }
 
 export class PartitionAlreadyExistsError extends CreateStreamError {
