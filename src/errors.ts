@@ -7,23 +7,23 @@
  * Error code enums.
  */
 
-export enum ConnectionErrorCodes {
+enum ConnectionErrorCodes {
     ERR_NO_ADDRESSES = 'ERR_NO_ADDRESSES',
     ERR_COULD_NOT_CONNECT = 'ERR_COULD_NOT_CONNECT',
     ERR_DEADLINE_EXCEEDED = 'ERR_DEADLINE_EXCEEDED',
 }
 
-export enum CreateStreamErrorCodes {
+enum CreateStreamErrorCodes {
     ERR_PARTITION_ALREADY_EXISTS = 'ERR_PARTITION_ALREADY_EXISTS',
     ERR_INVALID_PARTITIONS = 'ERR_INVALID_PARTITIONS',
 }
 
-export enum SubscribeErrorCodes {
+enum SubscribeErrorCodes {
     ERR_PARTITION_DOES_NOT_EXIST = 'ERR_PARTITION_DOES_NOT_EXIST',
     ERR_OFFSET_NOT_SPECIFIED = 'ERR_OFFSET_NOT_SPECIFIED',
 }
 
-export enum MetadataErrorCodes {
+enum MetadataErrorCodes {
     ERR_STREAM_NOT_FOUND_IN_METADATA = 'ERR_STREAM_NOT_FOUND_IN_METADATA',
     ERR_SUBJECT_NOT_FOUND_IN_METADATA = 'ERR_SUBJECT_NOT_FOUND_IN_METADATA',
     ERR_NO_KNOWN_PARTITION = 'ERR_NO_KNOWN_PARTITION',
@@ -41,7 +41,7 @@ export const ErrorCodes = {
  * Base Error classes.
  */
 
-export class ConnectionError extends Error {
+class ConnectionError extends Error {
     constructor(public message: string = 'Unexpected error while connecting to Liftbridge server(s)', public code?: string) {
         super();
         Object.setPrototypeOf(this, new.target.prototype);
@@ -51,7 +51,7 @@ export class ConnectionError extends Error {
     }
 }
 
-export class CreateStreamError extends Error {
+class CreateStreamError extends Error {
     constructor(public message: string = 'Unexpected error while creating Liftbridge stream', public code?: string) {
         super();
         Object.setPrototypeOf(this, new.target.prototype);
@@ -61,7 +61,7 @@ export class CreateStreamError extends Error {
     }
 }
 
-export class SubscribeError extends Error {
+class SubscribeError extends Error {
     constructor(public message: string = 'Unexpected error while subscribing to stream', public code?: string) {
         super();
         Object.setPrototypeOf(this, new.target.prototype);
@@ -71,7 +71,7 @@ export class SubscribeError extends Error {
     }
 }
 
-export class MetadataError extends Error {
+class MetadataError extends Error {
     constructor(public message: string = 'Unexpected error while fetching metadata for Liftbridge stream', public code?: string) {
         super();
         Object.setPrototypeOf(this, new.target.prototype);
