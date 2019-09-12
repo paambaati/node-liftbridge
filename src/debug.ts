@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 import { randomBytes } from 'crypto';
 import LiftbridgeStream, { StartPosition } from './stream';
 import LiftbridgeMessage, { AckPolicy } from './message';
