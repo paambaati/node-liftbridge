@@ -27,7 +27,7 @@ export interface ILiftbridgeMessage {
      */
     correlationId?: string;
     /**
-     * `headers` are key-value pairs to set on the Message.
+     * `headers` are key-value pairs to set on the Message headers map.
      */
     headers?: ILiftbridgeMessageHeader;
     /**
@@ -87,6 +87,12 @@ export default class LiftbridgeMessage extends Message {
         if (correlationId) this.setCorrelationid(correlationId);
         if (ackInbox) this.setAckinbox(ackInbox);
         if (!ackPolicy) this.setAckpolicy(AckPolicy.NONE);
+
+        if (headers && Object.keys(headers).length) {
+            for (const headerKey in headers) {
+                this.getHeadersMap().set(headerKey, Buffer.from(headers[headerKey]));
+            }
+        }
     }
 
     /**
