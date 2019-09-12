@@ -88,9 +88,12 @@ export default class LiftbridgeMessage extends Message {
         if (ackInbox) this.setAckinbox(ackInbox);
         if (!ackPolicy) this.setAckpolicy(AckPolicy.NONE);
 
-        if (headers && Object.keys(headers).length) {
-            for (const headerKey in headers) {
-                this.getHeadersMap().set(headerKey, Buffer.from(headers[headerKey]));
+        if (headers) {
+            const headerKeys = Object.keys(headers);
+            if (headerKeys.length) {
+                headerKeys.forEach(headerKey => {
+                    this.getHeadersMap().set(headerKey, Buffer.from(headers[headerKey], 'utf8'));
+                });
             }
         }
     }
