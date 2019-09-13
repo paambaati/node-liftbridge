@@ -171,10 +171,11 @@ export default class LiftbridgeClient {
             createRequest.setSubject(stream.subject);
             createRequest.setReplicationfactor(stream.replicationFactor);
             debug('attempting to create stream', stream.name, 'on subject', stream.subject);
-            this.client.createStream(createRequest, (err: ServiceError | null, response: CreateStreamResponse | undefined) => {
+            this.client.createStream(createRequest, { deadline: LiftbridgeClient.getDeadline() }, (err: ServiceError | null, response: CreateStreamResponse | undefined) => {
                 if (err) {
                     debug('create stream failed! error code =', err.code);
                     if (err.code === 6) return reject(new PartitionAlreadyExistsError());
+                    if (err.code === 4) return reject(new DeadlineExceededError());
                     return reject(err);
                 }
                 debug('create stream successful');
@@ -200,7 +201,7 @@ export default class LiftbridgeClient {
             return this.client.subscribe(subscribeRequest);
         }
         debug('attempting to subscribe to stream', stream.name);
-        return this.client.subscribe(subscribeRequest);
+        return this.client.subscribe(subscribeRequest, { deadline: LiftbridgeClient.getDeadline() });
     }
 
     private createPublishRequest(message: LiftbridgeMessage): Promise<PublishResponse> {
@@ -212,8 +213,11 @@ export default class LiftbridgeClient {
             message.setSubject(updatedSubject);
             publishRequest.setMessage(message);
             debug('going to publish message to', updatedSubject, 'with key', message.getKey().toString());
-            this.client.publish(publishRequest, (err: ServiceError | null, response: PublishResponse | undefined) => {
-                if (err) return reject(err);
+            this.client.publish(publishRequest, { deadline: LiftbridgeClient.getDeadline() }, (err: ServiceError | null, response: PublishResponse | undefined) => {
+                if (err) {
+                    if (err.code === 4) return reject(new DeadlineExceededError());
+                    return reject(err);
+                }
                 return resolve(response);
             });
         });
@@ -225,10 +229,10 @@ export default class LiftbridgeClient {
             if (streams && streams.length) {
                 streams.forEach(stream => metadataRequest.addStreams(stream));
             }
-            debug('going to fetch metadata -> ', streams);
+            debug('going to fetch metadata for streams', streams);
             this.client.fetchMetadata(metadataRequest, { deadline: LiftbridgeClient.getDeadline() }, (err: ServiceError | null, response: FetchMetadataResponse | undefined) => {
                 if (err) {
-                    if (err.code === 4) return reject(new DeadlineExceededError()); // TODO: move getting/setting deadline and handling error codes to a generic method.
+                    if (err.code === 4) return reject(new DeadlineExceededError());
                     return reject(err);
                 }
                 return resolve(response);
