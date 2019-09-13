@@ -33,5 +33,5 @@ export function faultTolerantCall<T>(call: () => Promise<T>, retryOptions?: Part
         startingDelay: 0,
         timeMultiple: 1.5,
     };
-    return backOff(call, Object.assign(retryOptions || {}, retryDefaults));
+    return backOff(call, Object.assign(retryDefaults, retryOptions || {}));
 }
