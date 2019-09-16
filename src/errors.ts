@@ -8,7 +8,7 @@
  */
 
 /**
- * @category Error
+ * @hidden
  */
 enum ConnectionErrorCodes {
     ERR_NO_ADDRESSES = 'ERR_NO_ADDRESSES',
@@ -17,7 +17,7 @@ enum ConnectionErrorCodes {
 }
 
 /**
- * @category Error
+ * @hidden
  */
 enum CreateStreamErrorCodes {
     ERR_PARTITION_ALREADY_EXISTS = 'ERR_PARTITION_ALREADY_EXISTS',
@@ -25,7 +25,7 @@ enum CreateStreamErrorCodes {
 }
 
 /**
- * @category Error
+ * @hidden
  */
 enum SubscribeErrorCodes {
     ERR_PARTITION_DOES_NOT_EXIST = 'ERR_PARTITION_DOES_NOT_EXIST',
@@ -34,7 +34,7 @@ enum SubscribeErrorCodes {
 }
 
 /**
- * @category Error
+ * @hidden
  */
 enum MetadataErrorCodes {
     ERR_STREAM_NOT_FOUND_IN_METADATA = 'ERR_STREAM_NOT_FOUND_IN_METADATA',
@@ -45,6 +45,23 @@ enum MetadataErrorCodes {
 
 /**
  * Liftbridge error codes.
+ *
+ * All errors include a `code` field that will include a unique
+ * code for the error which can be handled gracefully.
+ *
+ * @example Handling a custom error.
+ * ```
+ * import LiftbridgeClient from 'liftbridge';
+ * import { ErrorCodes } from 'liftbridge/errors';
+ *
+ * try {
+ *      const client = new LiftbridgeClient([]);
+ * } catch (err) {
+ *      if (err.code === ErrorCodes.ERR_NO_ADDRESSES) {
+ *          // NoAddressesError thrown. Now handle this.
+ *      }
+ * }
+ * ```
  *
  * @category Error
  */
