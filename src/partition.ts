@@ -134,7 +134,7 @@ export const builtinPartitioners = {
 };
 
 /**
- * Builtin partitioners as implementations of [[BasePartitioner]].
+ * All available builtin partitioners.
  *
  * @category Partition
  */
