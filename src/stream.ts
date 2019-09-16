@@ -45,8 +45,6 @@ export default class LiftbridgeStream {
 
     public readonly replicationFactor: number;
 
-    private readonly maxReplication: boolean;
-
     public startOffset: number | undefined;
 
     public startTimestamp: number | undefined;
@@ -71,7 +69,6 @@ export default class LiftbridgeStream {
         }
         this.partitions = partitions;
         this.replicationFactor = maxReplication ? -1 : replicationFactor;
-        this.maxReplication = maxReplication;
         if (startOffset) this.startOffset = startOffset;
         if (startTimestamp) this.startTimestamp = startTimestamp;
         if (!startOffset && !this.startTimestamp && startPosition) this.startPosition = startPosition;
