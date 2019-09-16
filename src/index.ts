@@ -30,8 +30,14 @@ import {
 import { shuffleArray, faultTolerantCall } from './utils';
 import { builtinPartitioners, PartitionerLike } from './partition';
 
+/**
+ * @hidden
+ */
 const debug = Debug.debug('node-liftbridge:client');
 
+/**
+ * @hidden
+ */
 const DEFAULTS = {
     timeout: 5000,
 };

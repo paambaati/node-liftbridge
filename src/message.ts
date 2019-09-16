@@ -2,9 +2,13 @@ import hyperId from 'hyperid';
 import { AckPolicy, AckPolicyMap, Message } from '../grpc/generated/api_pb';
 import { BuiltinPartitioners, PartitionerLike } from './partition';
 
-export { AckPolicy } from '../grpc/generated/api_pb';
-
+/**
+ * @hidden
+ */
 const envelopeCookie = Buffer.from('LIFT');
+/**
+ * @hidden
+ */
 const envelopeCookieLength = envelopeCookie.length;
 
 /**
@@ -169,3 +173,5 @@ export default class LiftbridgeMessage extends Message {
         };
     }
 }
+
+export { AckPolicy } from '../grpc/generated/api_pb';

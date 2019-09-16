@@ -2,7 +2,9 @@ import fnv1a from '@sindresorhus/fnv1a';
 import { IMetadata } from './metadata';
 import { StreamNotFoundInMetadataError } from './errors';
 
-// Module-level closure that holds a subject counter for use in the RoundRobinPartitioner.
+/**
+ * @hidden Module-level closure that holds a subject counter for use in the RoundRobinPartitioner.
+ */
 const subjectCounter = (function subjectCounter() {
     const subjectCounterMap: Map<string, number> = new Map();
     return {
