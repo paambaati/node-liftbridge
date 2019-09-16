@@ -17,7 +17,8 @@
     "lint": "eslint --ext .ts src/",
     "lint:test": "eslint --config .eslintrc.test.json --ext .ts test/",
     "test": "NODE_ENV=test LOG_LEVEL=silent tape -r ts-node/register/transpile-only test/*.test.ts",
-    "coverage": "rm -rf ./node_modules/.cache && rm -rf coverage/ && rm -rf .nyc_output/ && NODE_ENV=test LOG_LEVEL=silent nyc tape -r ts-node/register/transpile-only test/*.test.ts"
+    "coverage": "rm -rf ./node_modules/.cache && rm -rf coverage/ && rm -rf .nyc_output/ && NODE_ENV=test LOG_LEVEL=silent nyc tape -r ts-node/register/transpile-only test/*.test.ts",
+    "docs": "typedoc"
   },
   "dependencies": {
     "@sindresorhus/fnv1a": "1.2.0",
@@ -42,6 +43,8 @@
     "tape": "4.11.0",
     "ts-node": "8.4.1",
     "ts-protoc-gen": "0.11.0",
+    "typedoc": "0.15.0",
+    "typedoc-twilio-theme": "1.0.0",
     "typescript": "3.6.3"
   },
   "resolutions": {
