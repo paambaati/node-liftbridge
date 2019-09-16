@@ -9,6 +9,7 @@ const envelopeCookieLength = envelopeCookie.length;
 
 /**
  * Liftbridge message headers.
+ * @category Message
  */
 interface ILiftbridgeMessageHeader {
     [key: string]: string;
@@ -16,6 +17,7 @@ interface ILiftbridgeMessageHeader {
 
 /**
  * Liftbridge message interface.
+ * @category Message
  */
 export interface ILiftbridgeMessage {
     /**
@@ -73,6 +75,8 @@ export interface ILiftbridgeMessage {
  *
  * Includes some helpful methods to convert to/from native JSON objects
  * to Liftbridge gRPC objects.
+ *
+ * @category Message
  */
 export default class LiftbridgeMessage extends Message {
     /**

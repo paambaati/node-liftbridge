@@ -22,6 +22,8 @@ const subjectCounter = (function subjectCounter() {
  * Abstract class for Liftbridge partitioner.
  *
  * All custom implementations must implment the [[calculatePartition]] method.
+ *
+ * @category Partition
  */
 export abstract class BasePartitioner {
     protected readonly subject: string;
@@ -70,6 +72,8 @@ export abstract class BasePartitioner {
  * wildcards in their subjects, e.g. "foo.*", since this matches on the subject
  * literal of the published message. This also has undefined behavior if there
  * are multiple streams for the given subject.
+ *
+ * @category Partition
  */
 export class KeyPartitioner extends BasePartitioner {
     /**
@@ -93,6 +97,8 @@ export class KeyPartitioner extends BasePartitioner {
  * their subjects, e.g. "foo.*", since this matches on the subject literal of
  * the published message. This also has undefined behavior if there are multiple
  * streams for the given subject.
+ *
+ * @category Partition
  */
 export class RoundRobinPartitioner extends BasePartitioner {
     /**
@@ -117,6 +123,8 @@ export class RoundRobinPartitioner extends BasePartitioner {
 
 /**
  * Builtin partioners as simple strings.
+ *
+ * @category Partition
  */
 export const builtinPartitioners = {
     key: KeyPartitioner,
@@ -125,10 +133,14 @@ export const builtinPartitioners = {
 
 /**
  * Builtin partitioners as implementations of [[BasePartitioner]].
+ *
+ * @category Partition
  */
 export type BuiltinPartitioners = typeof builtinPartitioners;
 
 /**
  * Pluggable partitioner that must be an implementation of [[BasePartitioner]].
+ *
+ * @category Partition
  */
 export type PartitionerLike = new(subject: string, key: string | Uint8Array, metadata: IMetadata) => BasePartitioner;

@@ -19,6 +19,8 @@ const DEFAULTS = {
 
 /**
  * Metadata interface.
+ *
+ * @category Metadata
  */
 export interface IMetadata {
     /**
@@ -45,6 +47,8 @@ export interface IMetadata {
 
 /**
  * Stream information interface.
+ *
+ * @category Metadata
  */
 interface IStreamInfo {
     /**
@@ -66,6 +70,8 @@ interface IStreamInfo {
 /**
  * Stream index interface.
  * Holds all the streams by name and subject for easy lookups.
+ *
+ * @category Metadata
  */
 interface IStreamIndex {
     /**
@@ -84,6 +90,8 @@ interface IStreamIndex {
 
 /**
  * Partition information interface.
+ *
+ * @category Metadata
  */
 interface IPartitionInfo {
     /**
@@ -106,6 +114,8 @@ interface IPartitionInfo {
 
 /**
  * Broker information interface.
+ *
+ * @category Metadata
  */
 interface IBrokerInfo {
     /**
@@ -127,6 +137,8 @@ interface IBrokerInfo {
  *
  * Includes useful methods to fetch/refresh Liftbridge metadata and convert
  * them into usable JSON objects.
+ *
+ * @category Metadata
  */
 export default class LiftbridgeMetadata {
     private readonly client: APIClient;

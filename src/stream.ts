@@ -3,6 +3,7 @@ import { InvalidPartitionsError, OffsetNotSpecifiedError, TimestampNotSpecifiedE
 
 /**
  * Liftbridge stream options.
+ * @category Stream
  */
 export interface ILiftbridgeStreamOptions {
     /**

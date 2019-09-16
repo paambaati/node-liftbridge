@@ -31,6 +31,11 @@ enum MetadataErrorCodes {
     ERR_NO_KNOWN_LEADER_FOR_PARTITION = 'ERR_NO_KNOWN_LEADER_FOR_PARTITION',
 }
 
+/**
+ * Liftbridge error codes.
+ *
+ * @category Error
+ */
 export const ErrorCodes = {
     ...ConnectionErrorCodes,
     ...CreateStreamErrorCodes,
@@ -86,6 +91,9 @@ class MetadataError extends Error {
  * Error classes.
  */
 
+/**
+ * @category Error
+ */
 export class NoAddressesError extends ConnectionError {
     name = 'NoAddressesError';
 
@@ -94,6 +102,9 @@ export class NoAddressesError extends ConnectionError {
     code = ConnectionErrorCodes.ERR_NO_ADDRESSES;
 }
 
+/**
+ * @category Error
+ */
 export class CouldNotConnectToAnyServerError extends ConnectionError {
     name = 'CouldNotConnectToAnyServerError';
 
@@ -102,6 +113,9 @@ export class CouldNotConnectToAnyServerError extends ConnectionError {
     code = ConnectionErrorCodes.ERR_COULD_NOT_CONNECT;
 }
 
+/**
+ * @category Error
+ */
 export class DeadlineExceededError extends ConnectionError {
     name = 'DeadlineExceededError';
 
@@ -110,6 +124,9 @@ export class DeadlineExceededError extends ConnectionError {
     code = ConnectionErrorCodes.ERR_DEADLINE_EXCEEDED;
 }
 
+/**
+ * @category Error
+ */
 export class PartitionAlreadyExistsError extends CreateStreamError {
     name = 'PartitionAlreadyExistsError';
 
@@ -118,6 +135,9 @@ export class PartitionAlreadyExistsError extends CreateStreamError {
     code = CreateStreamErrorCodes.ERR_PARTITION_ALREADY_EXISTS;
 }
 
+/**
+ * @category Error
+ */
 export class InvalidPartitionsError extends CreateStreamError {
     name = 'InvalidPartitionsError';
 
@@ -126,6 +146,9 @@ export class InvalidPartitionsError extends CreateStreamError {
     code = CreateStreamErrorCodes.ERR_INVALID_PARTITIONS;
 }
 
+/**
+ * @category Error
+ */
 export class NoSuchPartitionError extends SubscribeError {
     name = 'NoSuchPartitionrror';
 
@@ -134,6 +157,9 @@ export class NoSuchPartitionError extends SubscribeError {
     code = SubscribeErrorCodes.ERR_PARTITION_DOES_NOT_EXIST;
 }
 
+/**
+ * @category Error
+ */
 export class OffsetNotSpecifiedError extends SubscribeError {
     name = 'OffsetNotSpecifiedError';
 
@@ -142,6 +168,9 @@ export class OffsetNotSpecifiedError extends SubscribeError {
     code = SubscribeErrorCodes.ERR_OFFSET_NOT_SPECIFIED;
 }
 
+/**
+ * @category Error
+ */
 export class TimestampNotSpecifiedError extends SubscribeError {
     name = 'TimestampNotSpecifiedError';
 
@@ -150,6 +179,9 @@ export class TimestampNotSpecifiedError extends SubscribeError {
     code = SubscribeErrorCodes.ERR_TIMESTAMP_NOT_SPECIFIED;
 }
 
+/**
+ * @category Error
+ */
 export class StreamNotFoundInMetadataError extends MetadataError {
     name = 'StreamNotFoundInMetadataError';
 
@@ -158,6 +190,9 @@ export class StreamNotFoundInMetadataError extends MetadataError {
     code = MetadataErrorCodes.ERR_STREAM_NOT_FOUND_IN_METADATA;
 }
 
+/**
+ * @category Error
+ */
 export class SubjectNotFoundInMetadataError extends MetadataError {
     name = 'SubjectNotFoundInMetadataError';
 
@@ -166,6 +201,9 @@ export class SubjectNotFoundInMetadataError extends MetadataError {
     code = MetadataErrorCodes.ERR_SUBJECT_NOT_FOUND_IN_METADATA;
 }
 
+/**
+ * @category Error
+ */
 export class NoKnownPartitionError extends MetadataError {
     name = 'NoKnownPartitionError';
 
@@ -174,6 +212,9 @@ export class NoKnownPartitionError extends MetadataError {
     code = MetadataErrorCodes.ERR_NO_KNOWN_PARTITION;
 }
 
+/**
+ * @category Error
+ */
 export class NoKnownLeaderForPartitionError extends MetadataError {
     name = 'NoKnownLeaderForPartitionError';
 

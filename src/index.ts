@@ -40,6 +40,8 @@ const DEFAULTS = {
  * Liftbridge gRPC credentials.
  *
  * Read [`grpc #273`](https://github.com/grpc/grpc-node/issues/273#issuecomment-399506158) for more details.
+ *
+ * @category Client
  */
 export interface ICredentials {
     /**
