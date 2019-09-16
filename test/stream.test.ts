@@ -16,6 +16,22 @@ test('🏞 Stream — constructor should return a `Stream` object with the corre
     t.end();
 });
 
+test('🏞 Stream — constructor should return a `Stream` object with the correct optional values set.', t => {
+    t.plan(3);
+    const stream = new LiftbridgeStream({
+        subject: 'test-subject',
+        name: 'test-stream',
+        group: 'my-fun-group',
+        replicationFactor: 6,
+        startPosition: StartPosition.EARLIEST,
+    });
+    t.equal(stream.group, 'my-fun-group', 'should have the group set.');
+    t.equal(stream.replicationFactor, 6, 'should have the replication factor set.');
+    t.equal(stream.startPosition, StartPosition.EARLIEST, 'should have the start position set.');
+    t.end();
+});
+
+
 test('🏞 Stream — constructor should throw when an invalid value is set for `partitions`.', t => {
     t.plan(2);
     try {
