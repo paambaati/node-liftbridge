@@ -36,7 +36,7 @@ await client.createStream(new LiftbridgeStream({
 });
 ```
 
-📚 See [Documentation](file:///Users/ganesh.prasannah/Projects/node-liftbridge/docs/globals.html) for more detailed examples.
+📚 See [Documentation](https://paambaati.github.io/node-liftbridge/globals.html) for more detailed examples.
 
 ## Developer Notes
 
