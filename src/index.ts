@@ -201,7 +201,7 @@ export default class LiftbridgeClient {
             return this.client.subscribe(subscribeRequest);
         }
         debug('attempting to subscribe to stream', stream.name);
-        return this.client.subscribe(subscribeRequest, { deadline: LiftbridgeClient.getDeadline() });
+        return this.client.subscribe(subscribeRequest);
     }
 
     private createPublishRequest(message: LiftbridgeMessage): Promise<PublishResponse> {
