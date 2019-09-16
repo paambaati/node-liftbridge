@@ -1,5 +1,5 @@
 {
-    "name": "node-liftbridge",
+    "name": "Liftbridge Node.js Client API",
     "mode": "file",
     "out": "docs",
     "theme": "node_modules/typedoc-twilio-theme/bin",
@@ -9,7 +9,12 @@
     "ignoreCompilerErrors": true,
     "excludePrivate": true,
     "listInvalidSymbolLinks": true,
+    "categorizeByGroup": true,
     "categoryOrder": [
-        "Client"
+        "Client",
+        "Stream",
+        "Message",
+        "Metadata",
+        "Error"
     ]
 }
