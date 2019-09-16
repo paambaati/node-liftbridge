@@ -1,0 +1,15 @@
+{
+    "name": "node-liftbridge",
+    "mode": "file",
+    "out": "docs",
+    "theme": "node_modules/typedoc-twilio-theme/bin",
+    "logger": "console",
+    "media": "media",
+    "hideGenerator": true,
+    "excludeNotExported": true,
+    "excludePrivate": true,
+    "listInvalidSymbolLinks": true,
+    "categoryOrder": [
+        "Client"
+    ]
+}
