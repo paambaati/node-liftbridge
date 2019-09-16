@@ -3,7 +3,7 @@
 ![](liftbridge.svg)
 
 <p align="center">
-  <img width="300" height="300" src="node-liftbridge.svg">
+  <img width="300" height="300" src="media/node-liftbridge.svg">
 </p>
 
 Node.js client for [Liftbridge](https://github.com/liftbridge-io/liftbridge).
