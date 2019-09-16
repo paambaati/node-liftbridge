@@ -18,6 +18,11 @@ const subjectCounter = (function subjectCounter() {
     };
 }());
 
+/**
+ * Abstract class for Liftbridge partitioner.
+ *
+ * All custom implementations must implment the [[calculatePartition]] method.
+ */
 export abstract class BasePartitioner {
     protected readonly subject: string;
 
@@ -29,7 +34,7 @@ export abstract class BasePartitioner {
      * Partitioner base class.
      *
      * Custom partitioners are expected to extends this class and implement
-     * the `calculatePartition()` method.
+     * the [[calculatePartition]] method.
      * @param message Liftbridge Message object.
      * @param metadata Metadata object.
      */
@@ -49,12 +54,17 @@ export abstract class BasePartitioner {
         return partitionsCount;
     }
 
+    /**
+     * Calculate the partition for the given message.
+     *
+     * @returns Partition to send the message to.
+     */
     public abstract calculatePartition(): number;
 }
 
 /**
- * `KeyPartitioner` computes the partition number for a given message by hashing the
- * key (using the super-simple [FNV-1A](https://softwareengineering.stackexchange.com/questions/49550/which-hashing-algorithm-is-best-for-uniqueness-and-speed/145633#145633)
+ * Computes the partition number for a given message by hashing the key (using the
+ * super-simple [FNV-1A](https://softwareengineering.stackexchange.com/questions/49550/which-hashing-algorithm-is-best-for-uniqueness-and-speed/145633#145633)
  * algorithm) and modding by the number of partitions for the first stream found with
  * the subject of the message. This does not work with streams containing
  * wildcards in their subjects, e.g. "foo.*", since this matches on the subject
@@ -76,8 +86,8 @@ export class KeyPartitioner extends BasePartitioner {
 }
 
 /**
- * `RoundRobinPartitioner` computes the partition number for a given message
- * in a round-robin fashion by atomically incrementing a counter for the message
+ * Computes the partition number for a given message in a
+ * round-robin fashion by atomically incrementing a counter for the message
  * subject and modding by the number of partitions for the first stream found
  * with the subject. This does not work with streams containing wildcards in
  * their subjects, e.g. "foo.*", since this matches on the subject literal of
@@ -107,7 +117,6 @@ export class RoundRobinPartitioner extends BasePartitioner {
 
 /**
  * Builtin partioners as simple strings.
- * @hidden
  */
 export const builtinPartitioners = {
     key: KeyPartitioner,
@@ -115,12 +124,11 @@ export const builtinPartitioners = {
 };
 
 /**
- * Builtin partitioners as implementations of `BasePartitioner`.
- * @hidden
+ * Builtin partitioners as implementations of [[BasePartitioner]].
  */
 export type BuiltinPartitioners = typeof builtinPartitioners;
 
 /**
- * Pluggable partitioner that must be an implementation of `BasePartioner`.
+ * Pluggable partitioner that must be an implementation of [[BasePartitioner]].
  */
 export type PartitionerLike = new(subject: string, key: string | Uint8Array, metadata: IMetadata) => BasePartitioner;

@@ -21,6 +21,7 @@ enum CreateStreamErrorCodes {
 enum SubscribeErrorCodes {
     ERR_PARTITION_DOES_NOT_EXIST = 'ERR_PARTITION_DOES_NOT_EXIST',
     ERR_OFFSET_NOT_SPECIFIED = 'ERR_OFFSET_NOT_SPECIFIED',
+    ERR_TIMESTAMP_NOT_SPECIFIED = 'ERR_TIMESTAMP_NOT_SPECIFIED',
 }
 
 enum MetadataErrorCodes {
@@ -139,6 +140,14 @@ export class OffsetNotSpecifiedError extends SubscribeError {
     message = 'Offset must be specified when startPosition is set to OFFSET!';
 
     code = SubscribeErrorCodes.ERR_OFFSET_NOT_SPECIFIED;
+}
+
+export class TimestampNotSpecifiedError extends SubscribeError {
+    name = 'TimestampNotSpecifiedError';
+
+    message = 'Start timestamp must be specified when startPosition is set to TIMESTAMP!';
+
+    code = SubscribeErrorCodes.ERR_TIMESTAMP_NOT_SPECIFIED;
 }
 
 export class StreamNotFoundInMetadataError extends MetadataError {

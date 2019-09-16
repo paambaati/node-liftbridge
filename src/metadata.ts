@@ -65,6 +65,7 @@ interface IStreamInfo {
 
 /**
  * Stream index interface.
+ * Holds all the streams by name and subject for easy lookups.
  */
 interface IStreamIndex {
     /**
@@ -121,6 +122,12 @@ interface IBrokerInfo {
     port: number;
 }
 
+/**
+ * Liftbridge stream & partition metadata.
+ *
+ * Includes useful methods to fetch/refresh Liftbridge metadata and convert
+ * them into usable JSON objects.
+ */
 export default class LiftbridgeMetadata {
     private readonly client: APIClient;
 
@@ -213,11 +220,12 @@ export default class LiftbridgeMetadata {
     }
 
     /**
-     * `getPartitionsCountForSubject` returns a map containing stream names
-     * and the number of partitions for the stream. This does not match on
+     * Returns a map containing stream names and the number
+     * of partitions for the stream. This does not match on
      * wildcard subjects, e.g. "foo.*".
      *
      * @param subject Subject to fetch partitions count for.
+     * @returns total partitions for the subject.
      */
     public async getPartitionsCountForSubject(subject: string): Promise<number> {
         const subjectMeta = this.metadata.streams.bySubject[subject];
@@ -229,17 +237,18 @@ export default class LiftbridgeMetadata {
     }
 
     /**
-     * `hasSubjectMetadata` indicates if the Metadata has info for at
-     * least one stream with the given subject literal.
+     * Indicates if the Metadata has info for at
+     * least one stream with the given subject.
      *
      * @param subject Subject to check metadata for.
+     * @returns `true` if metadata was found for subject, or `false` otherwise.
      */
     public hasSubjectMetadata(subject: string): boolean {
         return !!this.metadata.streams.bySubject[subject];
     }
 
     /**
-     * `update` fetches the latest cluster metadata, including stream
+     * Fetches the latest cluster metadata, including stream
      * and broker information.
      *
      * @returns Metadata.
@@ -252,7 +261,7 @@ export default class LiftbridgeMetadata {
     }
 
     /**
-     * `get` returns the cluster metadata.
+     * Returns the cluster metadata.
      *
      * @returns Metadata.
      */
@@ -261,7 +270,7 @@ export default class LiftbridgeMetadata {
     }
 
     /**
-     * `getAddr` returns the broker address for the given stream partition.
+     * Returns the broker address for the given stream partition.
      *
      * @param stream Stream.
      * @param partition Stream partition.

@@ -19,6 +19,7 @@ import {
     PublishRequest,
     FetchMetadataRequest,
     FetchMetadataResponse,
+    StartPosition,
 } from '../grpc/generated/api_pb';
 import LiftbridgeStream from './stream';
 import LiftbridgeMessage from './message';
@@ -35,6 +36,11 @@ const DEFAULTS = {
     timeout: 5000,
 };
 
+/**
+ * Liftbridge gRPC credentials.
+ *
+ * Read [`grpc #273`](https://github.com/grpc/grpc-node/issues/273#issuecomment-399506158) for more details.
+ */
 export interface ICredentials {
     /**
      * Root certificate file.
@@ -93,11 +99,10 @@ export default class LiftbridgeClient {
 
     /**
      * A client for use with a Liftbridge cluster.
-     * Use [[connect]] to establish a connection first.
      *
      * @param addresses String or array of strings of Liftbridge server addresses to connect to.
-     * @param serverCredentials Credentials to use. Defaults to insecure context.
-     * @param options [Additional options](https://grpc.github.io/grpc/core/group__grpc__arg__keys.html) to pass on to low-level gRPC client for channel creation.
+     * @param serverCredentials TLS credentials to use. Defaults to insecure context.
+     * @param options Additional [options](https://grpc.github.io/grpc/core/group__grpc__arg__keys.html) to pass on to low-level gRPC client for channel creation.
      */
     constructor(addresses: string[] | string, serverCredentials: ICredentials | undefined = undefined, options?: object) {
         if (!addresses || addresses.length < 1) {
@@ -353,6 +358,10 @@ export default class LiftbridgeClient {
      * ```
      *
      * @param stream Stream to subscribe to.
+     * @event data On data from the subscribed Liftbridge stream.
+     * @event status On gRPC process status.
+     * @event error On some error.
+     * @event end OnLiftbridge server finishing sending messages.
      * @returns ReadableStream of messages.
      */
     public subscribe(stream: LiftbridgeStream): ClientReadableStream<Message> {
@@ -402,3 +411,13 @@ export default class LiftbridgeClient {
         this.client.close();
     }
 }
+
+export {
+    APIClient,
+    IBackOffOptions,
+    CreateStreamResponse,
+    PublishResponse,
+    ClientReadableStream,
+    Message,
+    StartPosition,
+};
