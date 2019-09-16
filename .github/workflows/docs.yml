@@ -5,6 +5,8 @@ on:
       - master
     tags:
       - '!*' # Do not execute on tags
+    paths:
+      - '!test/' # Do not execute on changes in `test/` directory
 jobs:
   build-and-deploy-docs:
     runs-on: ubuntu-latest
