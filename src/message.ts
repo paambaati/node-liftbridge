@@ -152,8 +152,8 @@ export default class LiftbridgeMessage extends Message {
      * Returns a deserialized `Message` in JSON form.
      *
      * Buffers & byte-arrays are deserialized to UTF-8 strings,
-     * and maps of the form [[k1, v1], [k2, v2]] are converted to
-     * objects of the form { k1: v1, k2, v2 }.
+     * and maps of the form `[[k1, v1], [k2, v2]]` are converted to
+     * objects of the form `{ k1: v1, k2, v2 }`.
      *
      * @param message Liftbridge `Message` to deserialize.
      * @returns JSON form of given `Message` as [[IMessage]].
