@@ -51,6 +51,8 @@ export interface IStreamOptions {
     startTimestamp?: number;
     /**
      * Control where to begin consuming from in the stream.
+     * Defaults to `LATEST`.
+     *
      * Available positions are `EARLIEST`, `LATEST`, `NEW_ONLY`,
      * `OFFSET` ([[startOffset]] has to be set) & `TIMESTAMP` ([[startTimestamp]] has to be set).
      *
@@ -109,7 +111,7 @@ export default class LiftbridgeStream {
     /**
      * See [[IStreamOptions.startPosition]]
      */
-    public readonly startPosition: StartPositionMap[keyof StartPositionMap] | undefined;
+    public readonly startPosition: StartPositionMap[keyof StartPositionMap] | undefined = StartPosition.LATEST;
 
     /**
      * See [[IStreamOptions.partitions]]
@@ -124,18 +126,18 @@ export default class LiftbridgeStream {
     public constructor(stream: IStreamOptions) {
         this.subject = stream.subject;
         this.name = stream.name;
-        if (stream.group) this.group = stream.group;
+        if (Object.prototype.hasOwnProperty.call(stream, 'group')) this.group = stream.group;
         this.partitions = stream.partitions ? stream.partitions : 1;
         if (this.partitions < 0) {
             throw new InvalidPartitionsError();
         }
         if (stream.startPosition === StartPosition.OFFSET && !stream.startOffset) throw new OffsetNotSpecifiedError();
         if (stream.startPosition === StartPosition.TIMESTAMP && !stream.startTimestamp) throw new TimestampNotSpecifiedError();
-        this.replicationFactor = stream.replicationFactor ? stream.replicationFactor : 1;
-        this.replicationFactor = stream.maxReplication ? -1 : this.replicationFactor;
-        if (stream.startOffset) this.startOffset = stream.startOffset;
-        if (stream.startTimestamp) this.startTimestamp = stream.startTimestamp;
-        if (!stream.startOffset && !this.startTimestamp && stream.startPosition) this.startPosition = stream.startPosition;
+        this.replicationFactor = Object.prototype.hasOwnProperty.call(stream, 'replicationFactor') ? stream.replicationFactor as number : 1;
+        this.replicationFactor = Object.prototype.hasOwnProperty.call(stream, 'maxReplication') ? -1 : this.replicationFactor;
+        if (Object.prototype.hasOwnProperty.call(stream, 'startOffset')) this.startOffset = stream.startOffset;
+        if (Object.prototype.hasOwnProperty.call(stream, 'startTimestamp')) this.startTimestamp = stream.startTimestamp;
+        if (stream.startPosition && !stream.startOffset && !this.startTimestamp) this.startPosition = stream.startPosition;
     }
 }
 
