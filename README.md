@@ -12,6 +12,8 @@ Node.js client for [Liftbridge](https://github.com/liftbridge-io/liftbridge).
 
 🚧 **This module is still under active development!** [Would you like to contribute?](https://github.com/paambaati/node-liftbridge) 🚧
 
+#### 📚 [Documentation](https://paambaati.github.io/node-liftbridge/classes/liftbridgeclient.html)
+
 ## Installation
 
 ```bash
