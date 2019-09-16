@@ -14,8 +14,7 @@
     ],
     "reporter": [
         "text",
-        "lcov",
-        "html"
+        "lcov"
     ],
     "cache": false
 }
