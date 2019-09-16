@@ -6,7 +6,7 @@ on:
     tags:
       - '!*' # Do not execute on tags
 jobs:
-  build-and-deploy:
+  build-and-deploy-docs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout master branch
