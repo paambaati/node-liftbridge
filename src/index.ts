@@ -56,6 +56,30 @@ export interface ICredentials {
     certificateChainFile: string;
 }
 
+/**
+ * Create a client for working with a Liftbridge cluster.
+ *
+ * @example Insecure connection (default).
+ * ```
+ * import LiftbridgeClient from 'liftbridge';
+ *
+ * const client = new LiftbridgeClient('localhost:9292');
+ * await client.connect();
+ * ```
+ *
+ * @example Secure TLS connection (recommended in production).
+ * ```
+ * import LiftbridgeClient from 'liftbridge';
+ *
+ * const client = new LiftbridgeClient('localhost:9292', {
+ *      rootCertificateFile: './credentials/ca.crt',
+ *      privateKeyFile: './credentials/private.key',
+ *      certificateChainFile: './credentials/chain.crt'
+ * });
+ * await client.connect();
+ * ```
+ * @category Client
+ */
 export default class LiftbridgeClient {
     private addresses: string[];
 
@@ -68,12 +92,12 @@ export default class LiftbridgeClient {
     private metadata!: LiftbridgeMetadata;
 
     /**
-     * A simple client for use with a Liftbridge cluster.
-     * Use `.connect()` to establish a first connection.
+     * A client for use with a Liftbridge cluster.
+     * Use [[connect]] to establish a connection first.
      *
      * @param addresses String or array of strings of Liftbridge server addresses to connect to.
-     * @param credentials (Optional) Credentials to use. Defaults to insecure context.
-     * @param options (Optional) [Additional options](https://grpc.github.io/grpc/core/group__grpc__arg__keys.html) to pass on to low-level gRPC client for channel creation.
+     * @param serverCredentials Credentials to use. Defaults to insecure context.
+     * @param options [Additional options](https://grpc.github.io/grpc/core/group__grpc__arg__keys.html) to pass on to low-level gRPC client for channel creation.
      */
     constructor(addresses: string[] | string, serverCredentials: ICredentials | undefined = undefined, options?: object) {
         if (!addresses || addresses.length < 1) {
@@ -137,29 +161,6 @@ export default class LiftbridgeClient {
         }
         debug('calculated partition for message on subject', subject, partition);
         return partition;
-    }
-
-    /**
-     * Establish a connection to the Liftbridge cluster.
-     *
-     * @param timeout (Optional) Milliseconds before the connection attempt times out.
-     * @param retryOptions (Optional) Retry & backoff options.
-     * @returns Client instance.
-     */
-    public connect(timeout?: number, retryOptions?: Partial<IBackOffOptions>): Promise<APIClient> {
-        return new Promise((resolve, reject) => {
-            // Try connecting to each Liftbridge server in random order and use the first successful connection for APIClient.
-            const connectionAttempts = shuffleArray(this.addresses).map(address => this.connectToLiftbridge(address, timeout, retryOptions));
-            Bluebird.any(connectionAttempts).then(client => {
-                this.client = client;
-                // Client connection succeeded. Now collect broker & partition metadata for all streams.
-                this.fetchMetadata().then(metadataResponse => {
-                    debug('metadata fetch completed');
-                    this.metadata = new LiftbridgeMetadata(this.client, metadataResponse);
-                    return resolve(this.client);
-                });
-            }).catch(() => reject(new CouldNotConnectToAnyServerError()));
-        });
     }
 
     private createStreamRequest(stream: LiftbridgeStream): Promise<CreateStreamResponse> {
@@ -254,10 +255,66 @@ export default class LiftbridgeClient {
     }
 
     /**
-     * `createStream` creates a new stream attached to a NATS subject. Subject is
+     * Establish a connection to the Liftbridge cluster.
+     *
+     * @example Connecting to a Liftbridge cluster with a custom timeout and multiple retries.
+     *
+     * ```
+     * import LiftbridgeClient from 'liftbridge';
+     *
+     * const client = new LiftbridgeClient('localhost:9292');
+     * await client.connect(3000, {
+     *      delayFirstAttempt: true,
+     *      jitter: 'full';
+     *      numOfAttempts: 10,
+     *      timeMultiple: 1.5,
+     *      startingDelay: 250
+     * });
+     * ```
+     *
+     * @param timeout Milliseconds before the connection attempt times out. This is set as the [gRPC Deadline](https://grpc.io/blog/deadlines/).
+     * @param retryOptions Retry & backoff options.
+     * @returns Client instance.
+     */
+    public connect(timeout?: number, retryOptions?: Partial<IBackOffOptions>): Promise<APIClient> {
+        return new Promise((resolve, reject) => {
+            // Try connecting to each Liftbridge server in random order and use the first successful connection for APIClient.
+            const connectionAttempts = shuffleArray(this.addresses).map(address => this.connectToLiftbridge(address, timeout, retryOptions));
+            Bluebird.any(connectionAttempts).then(client => {
+                this.client = client;
+                // Client connection succeeded. Now collect broker & partition metadata for all streams.
+                this.fetchMetadata().then(metadataResponse => {
+                    debug('post-connection metadata fetch completed');
+                    this.metadata = new LiftbridgeMetadata(this.client, metadataResponse);
+                    return resolve(this.client);
+                });
+            }).catch(() => reject(new CouldNotConnectToAnyServerError()));
+        });
+    }
+
+    /**
+     * Create a new stream attached to a NATS subject. Subject is
      * the NATS subject the stream is attached to, and name is the stream
-     * identifier, unique per subject. It throws `StreamAlreadyExistsError` if a
+     * identifier, unique per subject. It throws [[PartitionAlreadyExistsError]] if a
      * stream with the given subject and name already exists.
+     *
+     * @example Create a new stream on the Liftbridge cluster.
+     * ```
+     * import LiftbridgeClient from 'liftbridge';
+     *
+     * const client = new LiftbridgeClient('localhost:9292');
+     * await client.connect();
+     * await client.createStream(new LiftbridgeStream({
+     *      subject: 'my-subject',
+     *      name: 'stream-name',
+     *      partitions: 5,
+     *      maxReplication: true
+     * })).catch(err => {
+     *      if (err.code !== ErrorCodes.ERR_PARTITION_ALREADY_EXISTS) {
+     *          throw err;
+     *      }
+     * });
+     * ```
      *
      * @param stream Stream to create.
      * @returns CreateStreamResponse gRPC object.
@@ -267,12 +324,33 @@ export default class LiftbridgeClient {
     }
 
     /**
-     * `subscribe` creates an ephemeral subscription for the given stream. It
-     * begins receiving messages starting at the configured position and waits
+     * Create an ephemeral subscription for the given stream. It begins
+     * receiving messages starting at the configured position and waits
      * for new messages when it reaches the end of the stream. The default
-     * start position is the end of the stream. It throws a `NoSuchStreamError`
+     * start position is the end of the stream. It throws [[NoSuchPartitionError]]
      * if the given stream does not exist. Use `subscribe().close()` to close
      * a subscription.
+     *
+     * @example Subscribing to a subject.
+     * ```
+     * import LiftbridgeClient from 'liftbridge';
+     * import LiftbridgeStream, { StartPosition } from 'liftbridge/stream';
+     *
+     * const client = new LiftbridgeClient('localhost:9292');
+     * await client.connect();
+     * const subscription = client.subscribe(new LiftbridgeStream({
+     *      subject: 'my-subject',
+     *      name: 'stream-name',
+     *      startPosition: StartPosition.EARLIEST
+     * }));
+     *
+     * subscription.on('data', (data: Message) => {
+     *      console.log('subscribe on data = ', LiftbridgeMessage.toJSON(data));
+     * });
+     *
+     * // When ready to finish subscription —
+     * subscription.close();
+     * ```
      *
      * @param stream Stream to subscribe to.
      * @returns ReadableStream of messages.
@@ -283,12 +361,31 @@ export default class LiftbridgeClient {
     }
 
     /**
-     * `publish` publishes a new message to the NATS subject. If the AckPolicy is
+     * Publish a new message to the NATS subject. If the AckPolicy is
      * not NONE and a deadline is provided, this will synchronously block until
      * the first ack is received. If the ack is not received in time, a
      * DeadlineExceeded status code is returned. If an AckPolicy and deadline
      * are configured, this returns the first Ack on success, otherwise it
      * returns null.
+     *
+     * @example Publish a message to a subject.
+     * ```
+     * import LiftbridgeClient from 'liftbridge';
+     * import LiftbridgeMessage, { AckPolicy } from 'liftbridge/message';
+     *
+     * const client = new LiftbridgeClient('localhost:9292');
+     * await client.connect();
+     *
+     * await client.publish(new LiftbridgeMessage({
+     *      subject: 'my-subject',
+     *      key: 'message-key',
+     *      value: 'message-value',
+     *      ackPolicy: AckPolicy.ALL,
+     *      partitionStrategy: 'roundrobin',
+     *      ackInbox: 'ack.my-subject',
+     *      headers: { 'some-header': '123' }
+     * }));
+     * ```
      *
      * @param message Message to publish.
      * @returns PublishResponse gRPC object.
@@ -299,7 +396,7 @@ export default class LiftbridgeClient {
     }
 
     /**
-     * `close` closes the client connection to the Liftbridge cluster.
+     * Close the client connection to the Liftbridge cluster.
      */
     public close(): void {
         this.client.close();
