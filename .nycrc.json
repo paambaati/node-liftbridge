@@ -1,0 +1,21 @@
+{
+    "extension": [
+        ".ts"
+    ],
+    "require": [
+        "ts-node/register/transpile-only"
+    ],
+    "exclude": [
+        "**/*.d.ts",
+        "coverage/",
+        "lib/",
+        "test/",
+        "grpc/"
+    ],
+    "reporter": [
+        "text",
+        "lcov",
+        "html"
+    ],
+    "cache": false
+}
