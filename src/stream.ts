@@ -5,7 +5,7 @@ import { InvalidPartitionsError, OffsetNotSpecifiedError, TimestampNotSpecifiedE
  * Liftbridge stream options.
  * @category Stream
  */
-export interface ILiftbridgeStreamOptions {
+export interface IStreamOptions {
     /**
      * Stream subject.
      */
@@ -77,42 +77,42 @@ export interface ILiftbridgeStreamOptions {
  */
 export default class LiftbridgeStream {
     /**
-     * See [[ILiftbridgeStreamOptions.subject]]
+     * See [[IStreamOptions.subject]]
      */
     public readonly subject: string;
 
     /**
-     * See [[ILiftbridgeStreamOptions.name]]
+     * See [[IStreamOptions.name]]
      */
     public readonly name: string;
 
     /**
-     * See [[ILiftbridgeStreamOptions.group]]
+     * See [[IStreamOptions.group]]
      */
     public readonly group: string | undefined;
 
     /**
-     * See [[ILiftbridgeStreamOptions.replicationFactor]]
+     * See [[IStreamOptions.replicationFactor]]
      */
     public readonly replicationFactor: number = 1;
 
     /**
-     * See [[ILiftbridgeStreamOptions.startOffset]]
+     * See [[IStreamOptions.startOffset]]
      */
     public readonly startOffset: number | undefined;
 
     /**
-     * See [[ILiftbridgeStreamOptions.startTimestamp]]
+     * See [[IStreamOptions.startTimestamp]]
      */
     public readonly startTimestamp: number | undefined;
 
     /**
-     * See [[ILiftbridgeStreamOptions.startPosition]]
+     * See [[IStreamOptions.startPosition]]
      */
     public readonly startPosition: StartPositionMap[keyof StartPositionMap] | undefined;
 
     /**
-     * See [[ILiftbridgeStreamOptions.partitions]]
+     * See [[IStreamOptions.partitions]]
      */
     public partitions: number | undefined = 1;
 
@@ -121,7 +121,7 @@ export default class LiftbridgeStream {
      *
      * @param stream Stream options.
      */
-    public constructor(stream: ILiftbridgeStreamOptions) {
+    public constructor(stream: IStreamOptions) {
         this.subject = stream.subject;
         this.name = stream.name;
         if (stream.group) this.group = stream.group;

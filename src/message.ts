@@ -11,7 +11,7 @@ const envelopeCookieLength = envelopeCookie.length;
  * Liftbridge message headers.
  * @category Message
  */
-interface ILiftbridgeMessageHeader {
+interface IMessageHeader {
     [key: string]: string;
 }
 
@@ -19,7 +19,7 @@ interface ILiftbridgeMessageHeader {
  * Liftbridge message interface.
  * @category Message
  */
-export interface ILiftbridgeMessage {
+export interface IMessage {
     /**
      * Message subject.
      */
@@ -43,7 +43,7 @@ export interface ILiftbridgeMessage {
     /**
      * Key-value pairs to set on the Message headers map.
      */
-    headers?: ILiftbridgeMessageHeader;
+    headers?: IMessageHeader;
     /**
      * Sets the NATS subject Liftbridge should publish the message ack
      * to. If it's not set or if there's no Deadline, Liftbridge will not send an ack.
@@ -80,17 +80,17 @@ export interface ILiftbridgeMessage {
  */
 export default class LiftbridgeMessage extends Message {
     /**
-     * See [[ILiftbridgeMessage.correlationId]].
+     * See [[IMessage.correlationId]].
      */
     public correlationId = hyperId().uuid;
 
     /**
-     * See [[ILiftbridgeMessage.partition]].
+     * See [[IMessage.partition]].
      */
     public partition: number | undefined = undefined;
 
     /**
-     * See [[ILiftbridgeMessage.partitionStrategy]].
+     * See [[IMessage.partitionStrategy]].
      */
     public partitionStrategy: keyof BuiltinPartitioners | PartitionerLike | undefined = 'key';
 
@@ -99,7 +99,7 @@ export default class LiftbridgeMessage extends Message {
      * @param message Message object.
      * @returns Message object (with some extra helpful methods).
      */
-    constructor(message: ILiftbridgeMessage) {
+    constructor(message: IMessage) {
         super();
         if (message.subject) this.setSubject(message.subject);
         this.setValue(typeof message.value === 'string' ? Buffer.from(message.value) : message.value);
@@ -126,7 +126,7 @@ export default class LiftbridgeMessage extends Message {
             const headerKeys = Object.keys(message.headers);
             if (headerKeys.length) {
                 headerKeys.forEach(headerKey => {
-                    this.getHeadersMap().set(headerKey, Buffer.from((message.headers as ILiftbridgeMessageHeader)[headerKey], 'utf8'));
+                    this.getHeadersMap().set(headerKey, Buffer.from((message.headers as IMessageHeader)[headerKey], 'utf8'));
                 });
             }
         }
@@ -152,9 +152,9 @@ export default class LiftbridgeMessage extends Message {
      * objects of the form { k1: v1, k2, v2 }.
      *
      * @param message Liftbridge `Message` to deserialize.
-     * @returns JSON form of given `Message`.
+     * @returns JSON form of given `Message` as [[IMessage]].
      */
-    public static toJSON(message: Message): ILiftbridgeMessage {
+    public static toJSON(message: Message): IMessage {
         const rawObject = message.toObject();
         const { headersMap, ...messageWithoutHeadersMap } = rawObject;
         return {
