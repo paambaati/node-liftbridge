@@ -107,6 +107,7 @@ export class RoundRobinPartitioner extends BasePartitioner {
 
 /**
  * Builtin partioners as simple strings.
+ * @hidden
  */
 export const builtinPartitioners = {
     key: KeyPartitioner,
@@ -115,6 +116,7 @@ export const builtinPartitioners = {
 
 /**
  * Builtin partitioners as implementations of `BasePartitioner`.
+ * @hidden
  */
 export type BuiltinPartitioners = typeof builtinPartitioners;
 

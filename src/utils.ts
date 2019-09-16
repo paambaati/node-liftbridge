@@ -8,6 +8,7 @@ import { JitterTypes } from 'exponential-backoff/dist/options';
  * which is a computer-ready implementation of the [Fisher-Yates shuffle](https://wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle#The_modern_algorithm).
  *
  * @param array Array of items to shuffle.
+ * @hidden
  */
 export function shuffleArray(array: any[]) {
     const arrayCopy = array.slice();
@@ -24,6 +25,7 @@ export function shuffleArray(array: any[]) {
  *
  * @param call Function returning a `Promise` that you want to retry.
  * @param retryOptions Retry & exponential backoff options (has own defaults - read source).
+ * @hidden
  */
 export function faultTolerantCall<T>(call: () => Promise<T>, retryOptions?: Partial<IBackOffOptions>): Promise<T> {
     const retryDefaults: Partial<IBackOffOptions> = {
