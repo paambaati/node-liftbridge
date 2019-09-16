@@ -6,6 +6,7 @@
     "logger": "console",
     "media": "media",
     "hideGenerator": true,
+    "ignoreCompilerErrors": true,
     "excludeNotExported": true,
     "excludePrivate": true,
     "listInvalidSymbolLinks": true,
