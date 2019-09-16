@@ -1,6 +1,8 @@
 import test from 'tape';
 import LiftbridgeStream, { StartPosition } from '../src/stream';
-import { InvalidPartitionsError, ErrorCodes, OffsetNotSpecifiedError, TimestampNotSpecifiedError } from '../src/errors';
+import {
+    InvalidPartitionsError, ErrorCodes, OffsetNotSpecifiedError, TimestampNotSpecifiedError,
+} from '../src/errors';
 
 test('🏞 Stream — constructor should return a `Stream` object with the correct default values set.', t => {
     t.plan(5);
@@ -35,6 +37,7 @@ test('🏞 Stream — constructor should return a `Stream` object with the corre
 test('🏞 Stream — constructor should throw when an invalid value is set for `partitions`.', t => {
     t.plan(2);
     try {
+        // eslint-disable-next-line no-new
         new LiftbridgeStream({
             subject: 'test-subject',
             name: 'test-stream',
@@ -43,7 +46,7 @@ test('🏞 Stream — constructor should throw when an invalid value is set for 
         t.fail('constructor should throw an error.');
     } catch (err) {
         t.true(err instanceof InvalidPartitionsError, 'thrown error should be correct.');
-        t.equal(err['code'], ErrorCodes.ERR_INVALID_PARTITIONS, 'error code should be correct.');
+        t.equal(err.code, ErrorCodes.ERR_INVALID_PARTITIONS, 'error code should be correct.');
         t.end();
     }
 });
@@ -51,6 +54,7 @@ test('🏞 Stream — constructor should throw when an invalid value is set for 
 test('🏞 Stream — constructor should throw when start position is set to offset but no offset is specified.', t => {
     t.plan(2);
     try {
+        // eslint-disable-next-line no-new
         new LiftbridgeStream({
             subject: 'test-subject',
             name: 'test-stream',
@@ -59,7 +63,7 @@ test('🏞 Stream — constructor should throw when start position is set to off
         t.fail('constructor should throw an error.');
     } catch (err) {
         t.true(err instanceof OffsetNotSpecifiedError, 'thrown error should be correct.');
-        t.equal(err['code'], ErrorCodes.ERR_OFFSET_NOT_SPECIFIED, 'error code should be correct.');
+        t.equal(err.code, ErrorCodes.ERR_OFFSET_NOT_SPECIFIED, 'error code should be correct.');
         t.end();
     }
 });
@@ -67,6 +71,7 @@ test('🏞 Stream — constructor should throw when start position is set to off
 test('🏞 Stream — constructor should throw when start position is set to timestamp but no timestamp is specified.', t => {
     t.plan(2);
     try {
+        // eslint-disable-next-line no-new
         new LiftbridgeStream({
             subject: 'test-subject',
             name: 'test-stream',
@@ -75,7 +80,7 @@ test('🏞 Stream — constructor should throw when start position is set to tim
         t.fail('constructor should throw an error.');
     } catch (err) {
         t.true(err instanceof TimestampNotSpecifiedError, 'thrown error should be correct.');
-        t.equal(err['code'], ErrorCodes.ERR_TIMESTAMP_NOT_SPECIFIED, 'error code should be correct.');
+        t.equal(err.code, ErrorCodes.ERR_TIMESTAMP_NOT_SPECIFIED, 'error code should be correct.');
         t.end();
     }
 });
