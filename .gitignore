@@ -66,3 +66,5 @@ typings/
 # Built output files
 lib/
 
+#TypeDocs output files
+docs/
