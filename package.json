@@ -16,8 +16,8 @@
     "format": "eslint --fix --ext .ts src/ && eslint --fix --config .eslintrc.test.json --ext .ts test/",
     "lint": "eslint --ext .ts src/",
     "lint:test": "eslint --config .eslintrc.test.json --ext .ts test/",
-    "test": "NODE_ENV=test LOG_LEVEL=silent tape -r ts-node/register/transpile-only test/*.test.ts",
-    "coverage": "rm -rf ./node_modules/.cache && rm -rf coverage/ && rm -rf .nyc_output/ && NODE_ENV=test LOG_LEVEL=silent nyc tape -r ts-node/register/transpile-only test/*.test.ts",
+    "test": "tape -r ts-node/register/transpile-only test/*.test.ts",
+    "coverage": "rm -rf ./node_modules/.cache && rm -rf coverage/ && rm -rf .nyc_output/ && nyc tape -r ts-node/register/transpile-only test/*.test.ts",
     "docs": "typedoc"
   },
   "dependencies": {
