@@ -5,8 +5,9 @@ import { StreamNotFoundInMetadataError, ErrorCodes } from '../src/errors';
 import readFile from './helpers/read-file';
 import { IMetadata } from '../src/metadata';
 
+// Dummy implementation that always returns total partitions + 420.
 class TestPartitioner extends BasePartitioner {
-    public calculatePartition(): number { // Always returns total partitions + 420.
+    public calculatePartition(): number {
         const totalPartitions = this.getPartitionCount();
         return 420 + totalPartitions;
     }
@@ -35,6 +36,7 @@ test('⚖️ Partition — `KeyPartitioner` should correctly partition on keys b
     const metadata1: IMetadata = JSON.parse(await readFile('./fixtures/partition/metadata_1_partition.json'));
     const keyPartitioner1 = new KeyPartitioner('test-subject-1', 'some-key', metadata1);
     t.equal(keyPartitioner1.calculatePartition(), 0, 'should always return 0 for 1 partition.');
+
     const metadata2: IMetadata = JSON.parse(await readFile('./fixtures/partition/metadata_5_partitions.json'));
     const keyPartitioner2 = new KeyPartitioner('test-subject-1', 'some-other-key', metadata2);
     const expectedPartition = fnv1a('some-key') % Object.keys(metadata2.streams.bySubject['test-subject-1'].partitions).length;
@@ -47,6 +49,7 @@ test('⚖️ Partition — `RoundRobinPartitioner` should correctly partition on
     const metadata1: IMetadata = JSON.parse(await readFile('./fixtures/partition/metadata_1_partition.json'));
     const rrPartitioner1 = new RoundRobinPartitioner('test-subject-1', 'some-key', metadata1);
     t.equal(rrPartitioner1.calculatePartition(), 0, 'should always return 0 for 1 partition.');
+
     const metadata2: IMetadata = JSON.parse(await readFile('./fixtures/partition/metadata_5_partitions.json'));
     const rrPartitioner2 = new RoundRobinPartitioner('test-subject-1', 'some-other-key', metadata2);
     t.equal(rrPartitioner2.calculatePartition(), 0, 'should first return partition #0.');
