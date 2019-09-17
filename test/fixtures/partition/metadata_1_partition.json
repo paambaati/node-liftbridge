@@ -1,0 +1,73 @@
+{
+    "brokers": {
+        "dTmEw414ooPUMS8hu1kW03": {
+            "id": "dTmEw414ooPUMS8hu1kW03",
+            "host": "",
+            "port": 9292
+        }
+    },
+    "addresses": {},
+    "streams": {
+        "byName": {
+            "test-stream-1": {
+                "subject": "test-subject-1",
+                "name": "test-stream-1",
+                "partitions": [
+                    {
+                        "id": 0,
+                        "leader": {
+                            "id": "dTmEw414ooPUMS8hu1kW03",
+                            "host": "",
+                            "port": 9292
+                        },
+                        "replicas": [
+                            {
+                                "id": "dTmEw414ooPUMS8hu1kW03",
+                                "host": "",
+                                "port": 9292
+                            }
+                        ],
+                        "isr": [
+                            {
+                                "id": "dTmEw414ooPUMS8hu1kW03",
+                                "host": "",
+                                "port": 9292
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        "bySubject": {
+            "test-subject-1": {
+                "subject": "test-subject-1",
+                "name": "test-stream-1",
+                "partitions": [
+                    {
+                        "id": 0,
+                        "leader": {
+                            "id": "dTmEw414ooPUMS8hu1kW03",
+                            "host": "",
+                            "port": 9292
+                        },
+                        "replicas": [
+                            {
+                                "id": "dTmEw414ooPUMS8hu1kW03",
+                                "host": "",
+                                "port": 9292
+                            }
+                        ],
+                        "isr": [
+                            {
+                                "id": "dTmEw414ooPUMS8hu1kW03",
+                                "host": "",
+                                "port": 9292
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    },
+    "lastUpdated": "2019-09-17T04:35:49.214Z"
+}
