@@ -114,7 +114,7 @@ export default class LiftbridgeMessage extends Message {
             this.setKey(Buffer.from(''));
         }
 
-        if (message.partition) {
+        if (Object.prototype.hasOwnProperty.call(message, 'partition')) {
             this.partition = message.partition;
             this.partitionStrategy = undefined;
         } else {
@@ -122,15 +122,26 @@ export default class LiftbridgeMessage extends Message {
             this.partition = undefined;
         }
 
-        if (message.correlationId) this.setCorrelationid(message.correlationId);
+        if (Object.prototype.hasOwnProperty.call(message, 'correlationId')) {
+            this.setCorrelationid(message.correlationId as string);
+        } else {
+            this.setCorrelationid(this.correlationId);
+        }
+
+        if (Object.prototype.hasOwnProperty.call(message, 'ackPolicy')) {
+            this.setAckpolicy(<AckPolicyMap[keyof AckPolicyMap]>message.ackPolicy);
+        } else {
+            this.setAckpolicy(AckPolicy.NONE);
+        }
+
         if (message.ackInbox) this.setAckinbox(message.ackInbox);
-        if (!message.ackPolicy) this.setAckpolicy(AckPolicy.NONE);
 
         if (message.headers) {
             const headerKeys = Object.keys(message.headers);
             if (headerKeys.length) {
                 headerKeys.forEach(headerKey => {
-                    this.getHeadersMap().set(headerKey, Buffer.from((message.headers as IMessageHeader)[headerKey], 'utf8'));
+                    const headerValue = (<IMessageHeader>message.headers)[headerKey] || '';
+                    this.getHeadersMap().set(headerKey, Buffer.from(headerValue, 'utf8'));
                 });
             }
         }
