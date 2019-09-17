@@ -10,6 +10,7 @@ import { JitterTypes } from 'exponential-backoff/dist/options';
  * @param array Array of items to shuffle.
  * @hidden
  */
+/* istanbul ignore next */
 export function shuffleArray(array: any[]) {
     const arrayCopy = array.slice();
     for (let i = arrayCopy.length - 1; i > 0; i -= 1) {
@@ -27,6 +28,7 @@ export function shuffleArray(array: any[]) {
  * @param retryOptions Retry & exponential backoff options (has own defaults - read source).
  * @hidden
  */
+/* istanbul ignore next */
 export function faultTolerantCall<T>(call: () => Promise<T>, retryOptions?: Partial<IBackOffOptions>): Promise<T> {
     const retryDefaults: Partial<IBackOffOptions> = {
         delayFirstAttempt: false,
