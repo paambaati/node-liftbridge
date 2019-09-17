@@ -85,7 +85,7 @@ export class KeyPartitioner extends BasePartitioner {
      */
     public calculatePartition(): number {
         const partitionsCount = this.getPartitionCount();
-        if (partitionsCount === 0) return 0;
+        if (partitionsCount <= 1) return 0;
         const partition = fnv1a(this.key) % partitionsCount;
         return partition;
     }
@@ -110,9 +110,9 @@ export class RoundRobinPartitioner extends BasePartitioner {
      * @returns Partition to send the message to.
      */
     public calculatePartition(): number {
-        let counter = 0;
         const partitionsCount = this.getPartitionCount();
-        if (partitionsCount === 0) return 0;
+        if (partitionsCount <= 1) return 0;
+        let counter = 0;
         if (subjectCounter.has(this.subject)) {
             counter = <number>subjectCounter.get(this.subject);
             subjectCounter.add(this.subject, counter += 1);
