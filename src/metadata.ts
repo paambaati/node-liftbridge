@@ -14,6 +14,7 @@ const DEFAULTS = { // TODO: look at how to expose this.
         numOfAttempts: 30,
         startingDelay: 250,
     },
+    hostname: '127.0.0.1',
 };
 
 /**
@@ -172,7 +173,7 @@ export default class LiftbridgeMetadata {
         brokersList.forEach(broker => {
             latestMetadata.brokers[broker.id] = {
                 id: broker.id,
-                host: broker.host,
+                host: broker.host || DEFAULTS.hostname,
                 port: broker.port,
             };
         });
