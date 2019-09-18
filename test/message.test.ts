@@ -63,6 +63,7 @@ test('✉️ Message — constructor should correctly set all values.', t => {
 
     const message9 = new LiftbridgeMessage({
         value: 'some-value',
+        // @ts-ignore Force setting `null`.
         headers: { test: 'hello', example: null },
     });
     t.deepEqual(message9.getHeadersMap().toObject().sort(), [
@@ -104,9 +105,9 @@ test('✉️ Message — `toJSON()` should correctly transform a Liftbridge mess
         ackPolicy: AckPolicy.ALL,
         partition: 4,
         correlationId: 'xxx',
+        // @ts-ignore So we can try to pass in buffers too and see if they're toJSON()-able.
         headers: {
             example: 'sweet',
-            // @ts-ignore So we can try to pass in buffers too and see if they're toJSON()-able.
             lol: Buffer.from('420'),
         },
     });
