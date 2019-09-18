@@ -5,15 +5,14 @@ import { FetchMetadataRequest, FetchMetadataResponse } from '../grpc/generated/a
 import {
     NoSuchPartitionError, NoKnownPartitionError, NoKnownLeaderForPartitionError, SubjectNotFoundInMetadataError,
 } from './errors';
-import { faultTolerantCall } from './utils';
+import { faultTolerantCall, constructAddress } from './utils';
 
 const debug = Debug.debug('node-liftbridge:metadata');
 
-const DEFAULTS = {
+const DEFAULTS = { // TODO: look at how to expose this.
     waitForSubjectMetadataRetryConfig: {
-        numOfAttempts: 3,
-        startingDelay: 0,
-        timeMultiple: 1,
+        numOfAttempts: 30,
+        startingDelay: 250,
     },
 };
 
@@ -209,6 +208,7 @@ export default class LiftbridgeMetadata {
             if (streams && streams.length) {
                 streams.forEach(metadataRequest.addStreams);
             }
+            debug('attempting to fetch metadata from the liftbridge cluster');
             this.client.fetchMetadata(metadataRequest, (err: ServiceError | null, response: FetchMetadataResponse | undefined) => {
                 if (err) return reject(err);
                 return resolve(response);
@@ -220,15 +220,11 @@ export default class LiftbridgeMetadata {
     private async waitForSubjectMetadata(subject: string): Promise<IStreamInfo> {
         if (this.hasSubjectMetadata(subject)) return Promise.resolve(this.metadata.streams.bySubject[subject]);
         try {
-            const metadata = await faultTolerantCall(this.update, DEFAULTS.waitForSubjectMetadataRetryConfig);
+            const metadata = await this.update();
             return metadata.streams.bySubject[subject];
         } catch (e) {
             throw new SubjectNotFoundInMetadataError();
         }
-    }
-
-    private static constructAddress(host: string, port: number): string {
-        return `${host}:${port}`;
     }
 
     /**
@@ -267,7 +263,7 @@ export default class LiftbridgeMetadata {
      */
     public async update(): Promise<IMetadata> {
         debug('attempting to update metadata');
-        const metadataResponse = await this.fetchMetadata();
+        const metadataResponse = await faultTolerantCall(this.fetchMetadata, DEFAULTS.waitForSubjectMetadataRetryConfig);
         this.metadata = LiftbridgeMetadata.build(metadataResponse);
         return this.metadata;
     }
@@ -295,6 +291,6 @@ export default class LiftbridgeMetadata {
         if (!partitionMetadata) throw new NoKnownPartitionError();
         const { leader } = partitionMetadata;
         if (!leader) throw new NoKnownLeaderForPartitionError();
-        return LiftbridgeMetadata.constructAddress(leader.host, leader.port);
+        return constructAddress(leader.host, leader.port);
     }
 }
