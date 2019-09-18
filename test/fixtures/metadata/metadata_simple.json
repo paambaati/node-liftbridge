@@ -1,0 +1,31 @@
+{
+    "brokersList": [
+        {
+            "id": "DMxXSQifWCW2rdFsr2vk4S",
+            "host": "",
+            "port": 9292
+        }
+    ],
+    "metadataList": [
+        {
+            "name": "test-stream-1",
+            "subject": "test-subject-1",
+            "error": 0,
+            "partitionsMap": [
+                [
+                    0,
+                    {
+                        "id": 0,
+                        "leader": "DMxXSQifWCW2rdFsr2vk4S",
+                        "replicasList": [
+                            "DMxXSQifWCW2rdFsr2vk4S"
+                        ],
+                        "isrList": [
+                            "DMxXSQifWCW2rdFsr2vk4S"
+                        ]
+                    }
+                ]
+            ]
+        }
+    ]
+}
