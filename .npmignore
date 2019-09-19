@@ -4,3 +4,12 @@ examples/
 scripts/
 docs/
 media/
+coverage/
+.nyc_output/
+.codeclimate.yml
+.eslintrc.json
+.eslintrc.test.json
+.huskyrc.json
+.nycrc.json
+typedoc.json
+tsconfig.json
