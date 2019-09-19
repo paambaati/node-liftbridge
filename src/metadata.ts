@@ -11,8 +11,8 @@ const debug = Debug.debug('node-liftbridge:metadata');
 
 const DEFAULTS = { // TODO: look at how to expose this.
     waitForSubjectMetadataRetryConfig: {
-        numOfAttempts: 30,
-        startingDelay: 250,
+        numOfAttempts: 15,
+        startingDelay: 200,
     },
     hostname: '127.0.0.1',
 };
@@ -203,15 +203,16 @@ export default class LiftbridgeMetadata {
         return latestMetadata;
     }
 
-    private async fetchMetadata(streams?: string[]): Promise<FetchMetadataResponse> {
+    private fetchMetadata(streams?: string[]): Promise<FetchMetadataResponse> {
         return new Promise((resolve, reject) => {
             const metadataRequest = new FetchMetadataRequest();
             if (streams && streams.length) {
                 streams.forEach(metadataRequest.addStreams);
             }
-            debug('attempting to fetch metadata from the liftbridge cluster');
+            debug('attempting to fetch metadata from cluster');
             this.client.fetchMetadata(metadataRequest, (err: ServiceError | null, response: FetchMetadataResponse | undefined) => {
                 if (err) return reject(err);
+                debug('metadata fetch complete');
                 return resolve(response);
             });
         });
