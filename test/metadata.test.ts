@@ -1,8 +1,12 @@
 import test from 'tape';
 import LiftbridgeMetadata from '../src/metadata';
-import { FetchMetadataResponse, Broker, StreamMetadata, PartitionMetadata } from '../grpc/generated/api_pb';
+import {
+    FetchMetadataResponse, Broker, StreamMetadata, PartitionMetadata,
+} from '../grpc/generated/api_pb';
 import readFile from './helpers/read-file';
-import { NoSuchPartitionError, ErrorCodes, NoKnownPartitionError, NoKnownLeaderForPartitionError } from '../src/errors';
+import {
+    NoSuchPartitionError, ErrorCodes, NoKnownPartitionError, NoKnownLeaderForPartitionError,
+} from '../src/errors';
 
 /**
  * Converts a dump of Liftbridge RPC Metadata JSON to a `FetchMetadataResponse` object.
@@ -12,7 +16,7 @@ import { NoSuchPartitionError, ErrorCodes, NoKnownPartitionError, NoKnownLeaderF
 function metadataJsonToResponse(meta: object): FetchMetadataResponse {
     const metadataResponse = new FetchMetadataResponse();
 
-    meta['brokersList'].forEach(broker => {
+    meta.brokersList.forEach(broker => {
         const b = new Broker();
         b.setHost(broker.host);
         b.setPort(broker.port);
@@ -20,7 +24,7 @@ function metadataJsonToResponse(meta: object): FetchMetadataResponse {
         metadataResponse.addBrokers(b);
     });
 
-    meta['metadataList'].forEach(metadata => {
+    meta.metadataList.forEach(metadata => {
         const sm = new StreamMetadata();
         sm.setName(metadata.name);
         sm.setSubject(metadata.subject);
@@ -47,61 +51,61 @@ test('Ⓜ️ Metadata — `build()` should return a nice human-friendly JSON int
     const metadata = new LiftbridgeMetadata(null, metadataResponse);
     t.deepEqual(Object.keys(metadata.get()).sort(), ['addresses', 'brokers', 'lastUpdated', 'streams'].sort(), 'should contain all the expected keys.');
     t.deepEqual(metadata.get().brokers, {
-        'DMxXSQifWCW2rdFsr2vk4S': {
+        DMxXSQifWCW2rdFsr2vk4S: {
             id: 'DMxXSQifWCW2rdFsr2vk4S',
             host: '127.0.0.1',
             port: 9292,
         },
     }, 'brokers metadata should be correctly set.');
     t.deepEqual(metadata.get().streams, {
-        'byName': {
+        byName: {
             'test-stream-1': {
-                'subject': 'test-subject-1',
-                'name': 'test-stream-1',
-                'partitions': [{
-                    'id': 0,
-                    'leader': {
-                        'id': 'DMxXSQifWCW2rdFsr2vk4S',
-                        'host': '127.0.0.1',
-                        'port': 9292
+                subject: 'test-subject-1',
+                name: 'test-stream-1',
+                partitions: [{
+                    id: 0,
+                    leader: {
+                        id: 'DMxXSQifWCW2rdFsr2vk4S',
+                        host: '127.0.0.1',
+                        port: 9292,
                     },
-                    'replicas': [{
-                        'id': 'DMxXSQifWCW2rdFsr2vk4S',
-                        'host': '127.0.0.1',
-                        'port': 9292
+                    replicas: [{
+                        id: 'DMxXSQifWCW2rdFsr2vk4S',
+                        host: '127.0.0.1',
+                        port: 9292,
                     }],
-                    'isr': [{
-                        'id': 'DMxXSQifWCW2rdFsr2vk4S',
-                        'host': '127.0.0.1',
-                        'port': 9292
-                    }]
-                }]
-            }
+                    isr: [{
+                        id: 'DMxXSQifWCW2rdFsr2vk4S',
+                        host: '127.0.0.1',
+                        port: 9292,
+                    }],
+                }],
+            },
         },
-        'bySubject': {
+        bySubject: {
             'test-subject-1': {
-                'subject': 'test-subject-1',
-                'name': 'test-stream-1',
-                'partitions': [{
-                    'id': 0,
-                    'leader': {
-                        'id': 'DMxXSQifWCW2rdFsr2vk4S',
-                        'host': '127.0.0.1',
-                        'port': 9292
+                subject: 'test-subject-1',
+                name: 'test-stream-1',
+                partitions: [{
+                    id: 0,
+                    leader: {
+                        id: 'DMxXSQifWCW2rdFsr2vk4S',
+                        host: '127.0.0.1',
+                        port: 9292,
                     },
-                    'replicas': [{
-                        'id': 'DMxXSQifWCW2rdFsr2vk4S',
-                        'host': '127.0.0.1',
-                        'port': 9292
+                    replicas: [{
+                        id: 'DMxXSQifWCW2rdFsr2vk4S',
+                        host: '127.0.0.1',
+                        port: 9292,
                     }],
-                    'isr': [{
-                        'id': 'DMxXSQifWCW2rdFsr2vk4S',
-                        'host': '127.0.0.1',
-                        'port': 9292
-                    }]
-                }]
-            }
-        }
+                    isr: [{
+                        id: 'DMxXSQifWCW2rdFsr2vk4S',
+                        host: '127.0.0.1',
+                        port: 9292,
+                    }],
+                }],
+            },
+        },
     }, 'streams/partitions metadata should be correctly set.');
     t.deepEqual(metadata.get().addresses, {}, 'addresses metadata should be correctly set.');
     t.end();
@@ -109,9 +113,9 @@ test('Ⓜ️ Metadata — `build()` should return a nice human-friendly JSON int
 
 test('Ⓜ️ Metadata — `getAddress()` should return broker address for the given stream partition.', async t => {
     t.plan(7);
-    const metadataResponse = metadataJsonToResponse(JSON.parse(await readFile('./fixtures/metadata/metadata_simple.json')));
+    const metadataResponse1 = metadataJsonToResponse(JSON.parse(await readFile('./fixtures/metadata/metadata_simple.json')));
     // @ts-ignore No need to construct and pass a Client instance for this test.
-    const metadata = new LiftbridgeMetadata(null, metadataResponse);
+    const metadata = new LiftbridgeMetadata(null, metadataResponse1);
 
     t.equal(metadata.getAddress('test-stream-1', 0), '127.0.0.1:9292', 'address should be correct.');
 
@@ -131,9 +135,9 @@ test('Ⓜ️ Metadata — `getAddress()` should return broker address for the gi
     }
 
     try {
-        const metadataResponse = metadataJsonToResponse(JSON.parse(await readFile('./fixtures/metadata/metadata_no_leader.json')));
+        const metadataResponse2 = metadataJsonToResponse(JSON.parse(await readFile('./fixtures/metadata/metadata_no_leader.json')));
         // @ts-ignore No need to construct and pass a Client instance for this test.
-        const metadata = new LiftbridgeMetadata(null, metadataResponse);
+        const metadata = new LiftbridgeMetadata(null, metadataResponse2);
         metadata.getAddress('test-stream-1', 0);
         t.fail('should throw when there is no leader.');
     } catch (err) {
