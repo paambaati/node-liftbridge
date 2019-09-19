@@ -278,6 +278,7 @@ export default class LiftbridgeMetadata {
      */
     public async update(streams: string | string[] = []): Promise<IMetadata> {
         const streamsToUpdate = (typeof streams === 'string') ? [ streams ] : streams;
+        debug('trying to fetch metadata for streams', streamsToUpdate)
         const metadataResponse = await faultTolerantCall(() => this.fetchMetadata(streamsToUpdate), DEFAULTS.metadataUpdateRetryConfig);
         this.metadata = LiftbridgeMetadata.build(metadataResponse);
         return this.metadata;
