@@ -13,6 +13,7 @@
   "scripts": {
     "build": "tsc",
     "debug": "NODE_OPTIONS='--stack-trace-limit=10000' DEBUG=node-liftbridge:* ts-node src/debug.ts",
+    "debug:grpc": "GRPC_VERBOSITY=DEBUG GRPC_TRACE=connectivity_state,call_error yarn debug",
     "format": "eslint --fix --ext .ts src/ && eslint --fix --config .eslintrc.test.json --ext .ts test/",
     "lint": "eslint --ext .ts src/",
     "lint:test": "eslint --config .eslintrc.test.json --ext .ts test/",
