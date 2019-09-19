@@ -10,10 +10,11 @@ import { faultTolerantCall, constructAddress } from './utils';
 const debug = Debug.debug('node-liftbridge:metadata');
 
 const DEFAULTS = { // TODO: look at how to expose this.
-    waitForSubjectMetadataRetryConfig: {
+    metadataUpdateRetryConfig: {
         numOfAttempts: 15,
         startingDelay: 200,
     },
+    waitForSubjectMetadataUntil: 30000,
     hostname: '127.0.0.1',
 };
 
@@ -148,11 +149,11 @@ export default class LiftbridgeMetadata {
     /**
      * Metadata class.
      *
-     * Holds all metadaata of brokers, streams & partitions.
+     * Holds all metadata of brokers, streams & partitions.
      * @param client Liftbridge client instance.
      * @param metadataResponse `MetadataResponse` gRPC object.
      */
-    constructor(client: APIClient, metadataResponse: FetchMetadataResponse) {
+    constructor(client: APIClient, metadataResponse: FetchMetadataResponse = new FetchMetadataResponse()) {
         this.client = client;
         this.metadata = LiftbridgeMetadata.build(metadataResponse);
     }
@@ -209,24 +210,35 @@ export default class LiftbridgeMetadata {
             if (streams && streams.length) {
                 streams.forEach(metadataRequest.addStreams);
             }
-            debug('attempting to fetch metadata from cluster');
             this.client.fetchMetadata(metadataRequest, (err: ServiceError | null, response: FetchMetadataResponse | undefined) => {
                 if (err) return reject(err);
-                debug('metadata fetch complete');
                 return resolve(response);
             });
         });
     }
 
-    // Wait for subject metadata to appear until 3 metadata fetch calls.
+    // Wait for subject metadata to appear until `DEFAULTS.waitForSubjectMetadataUntil`.
     private async waitForSubjectMetadata(subject: string): Promise<IStreamInfo> {
-        if (this.hasSubjectMetadata(subject)) return Promise.resolve(this.metadata.streams.bySubject[subject]);
-        try {
-            const metadata = await this.update();
-            return metadata.streams.bySubject[subject];
-        } catch (e) {
-            throw new SubjectNotFoundInMetadataError();
-        }
+        return new Promise(async (resolve, reject) => {
+            if (this.hasSubjectMetadata(subject)) return resolve(this.metadata.streams.bySubject[subject]);
+            debug('metadata not found for subject', subject, 'so going to wait');
+            const start = process.hrtime();
+            let wait = true;
+            const waiter = setTimeout(() => {
+                wait = false;
+            }, DEFAULTS.waitForSubjectMetadataUntil);
+            while (wait) {
+                const metadata = await this.update(); // Keep updating and then checking for subject metadata to appear.
+                if (this.hasSubjectMetadata(subject)) {
+                    const end = process.hrtime(start);
+                    const ms = (end[0] * 1e9 + end[1]) / 1e6;
+                    debug('metadata for subject', subject, 'found after', ms, 'milliseconds');
+                    waiter.unref();
+                    return resolve(metadata.streams.bySubject[subject]);
+                }
+            }
+            return reject(new SubjectNotFoundInMetadataError());
+        });
     }
 
     /**
@@ -259,13 +271,14 @@ export default class LiftbridgeMetadata {
 
     /**
      * Fetches the latest cluster metadata, including stream
-     * and broker information.
+     * and broker information. Also updates the local copy of metadata.
      *
+     * @param streams Stream(s) to fetch metadata for.
      * @returns Metadata.
      */
-    public async update(): Promise<IMetadata> {
-        debug('attempting to update metadata');
-        const metadataResponse = await faultTolerantCall(this.fetchMetadata, DEFAULTS.waitForSubjectMetadataRetryConfig);
+    public async update(streams: string | string[] = []): Promise<IMetadata> {
+        const streamsToUpdate = (typeof streams === 'string') ? [ streams ] : streams;
+        const metadataResponse = await faultTolerantCall(() => this.fetchMetadata(streamsToUpdate), DEFAULTS.metadataUpdateRetryConfig);
         this.metadata = LiftbridgeMetadata.build(metadataResponse);
         return this.metadata;
     }
