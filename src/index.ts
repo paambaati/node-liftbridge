@@ -18,8 +18,6 @@ import {
     CreateStreamResponse,
     PublishResponse,
     PublishRequest,
-    FetchMetadataRequest,
-    FetchMetadataResponse,
     StartPosition,
 } from '../grpc/generated/api_pb';
 import LiftbridgeStream from './stream';
@@ -211,7 +209,7 @@ export default class LiftbridgeClient {
             debug('attempting to subscribe to stream', stream.name, 'at offset', stream.startOffset);
             subscribeRequest.setStartoffset(stream.startOffset.toString());
             return this.client.subscribe(subscribeRequest);
-        } else if (stream.startTimestamp) {
+        } if (stream.startTimestamp) {
             debug('attempting to subscribe to stream', stream.name, 'at timestamp', stream.startTimestamp);
             subscribeRequest.setStarttimestamp(stream.startTimestamp.toString());
             return this.client.subscribe(subscribeRequest);

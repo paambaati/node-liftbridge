@@ -228,6 +228,7 @@ export default class LiftbridgeMetadata {
                 wait = false;
             }, DEFAULTS.waitForSubjectMetadataUntil);
             while (wait) {
+                // eslint-disable-next-line no-await-in-loop
                 const metadata = await this.update(); // Keep updating and then checking for subject metadata to appear.
                 if (this.hasSubjectMetadata(subject)) {
                     const end = process.hrtime(start);
@@ -277,8 +278,8 @@ export default class LiftbridgeMetadata {
      * @returns Metadata.
      */
     public async update(streams: string | string[] = []): Promise<IMetadata> {
-        const streamsToUpdate = (typeof streams === 'string') ? [ streams ] : streams;
-        debug('trying to fetch metadata for streams', streamsToUpdate)
+        const streamsToUpdate = (typeof streams === 'string') ? [streams] : streams;
+        debug('trying to fetch metadata for streams', streamsToUpdate);
         const metadataResponse = await faultTolerantCall(() => this.fetchMetadata(streamsToUpdate), DEFAULTS.metadataUpdateRetryConfig);
         this.metadata = LiftbridgeMetadata.build(metadataResponse);
         return this.metadata;
