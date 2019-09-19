@@ -77,6 +77,8 @@ export const ErrorCodes = {
  */
 
 /**
+ * Connection Errors.
+ * Master class for all errors from connectivity to the Liftbridge cluster.
  * @category Error
  */
 class ConnectionError extends Error {
@@ -90,6 +92,8 @@ class ConnectionError extends Error {
 }
 
 /**
+ * CreateStream Errors.
+ * Master class for all errors from creating a Liftbridge stream.
  * @category Error
  */
 class CreateStreamError extends Error {
@@ -103,6 +107,8 @@ class CreateStreamError extends Error {
 }
 
 /**
+ * Subscribe Errors.
+ * Master class for all errors from subscribing to subjects on a Liftbridge cluster.
  * @category Error
  */
 class SubscribeError extends Error {
@@ -116,6 +122,8 @@ class SubscribeError extends Error {
 }
 
 /**
+ * Metadata Errors.
+ * Master class for all errors from fetching stream/partition metadata from a Liftbridge cluster.
  * @category Error
  */
 class MetadataError extends Error {
