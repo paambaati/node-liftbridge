@@ -1,13 +1,14 @@
 import { readFileSync } from 'fs';
 import { IBackOffOptions } from 'exponential-backoff/dist/options';
 import Bluebird from 'bluebird';
-import * as Debug from 'debug';
+import Debug from 'debug';
 import {
     Client as GRPCClient,
     credentials as GRPCCredentials,
     ChannelCredentials,
     ClientReadableStream,
     ServiceError,
+    status,
 } from 'grpc';
 import { APIClient } from '../grpc/generated/api_grpc_pb';
 import {
@@ -143,8 +144,8 @@ export default class LiftbridgeClient {
             const connection = new GRPCClient(address, this.credentials, this.options);
             // `waitForReady` takes a deadline.
             connection.waitForReady(LiftbridgeClient.getDeadline(timeout), err => {
-                debug('remote client connected and ready at', address);
                 if (err) return reject(err);
+                debug('remote client connected and ready at', address);
                 this.client = new APIClient(address, this.credentials, {
                     channelOverride: connection.getChannel(), // Reuse the working channel for APIClient.
                 });
@@ -188,12 +189,12 @@ export default class LiftbridgeClient {
             this.client.createStream(createRequest, { deadline: LiftbridgeClient.getDeadline() }, (err: ServiceError | null, response: CreateStreamResponse | undefined) => {
                 if (err) {
                     debug('create stream failed! error code =', err.code);
-                    if (err.code === 6) return reject(new PartitionAlreadyExistsError());
-                    if (err.code === 4) return reject(new DeadlineExceededError());
+                    if (err.code === status.ALREADY_EXISTS) return reject(new PartitionAlreadyExistsError());
+                    if (err.code === status.DEADLINE_EXCEEDED) return reject(new DeadlineExceededError());
                     return reject(err);
                 }
                 debug('create stream successful');
-                return this.metadata.update()
+                return this.metadata.update(stream.name) // Stream created. Now update metadata to make sure we know about the newly created stream.
                     .then(() => resolve(response))
                     .catch(reject);
             });
@@ -205,11 +206,12 @@ export default class LiftbridgeClient {
         subscribeRequest.setStream(stream.name);
         if (stream.startPosition) subscribeRequest.setStartposition(stream.startPosition);
         // subscribeRequest.setPartition(0); // TODO: debug this - figure out how best to allow to set specific partition.
+        // TODO: Subscribe requests must be sent to the leader of the requested stream partition - see https://github.com/liftbridge-io/liftbridge/blob/client_documentation/documentation/client.md#metadata-implementation
         if (stream.startOffset) {
             debug('attempting to subscribe to stream', stream.name, 'at offset', stream.startOffset);
             subscribeRequest.setStartoffset(stream.startOffset.toString());
             return this.client.subscribe(subscribeRequest);
-        } if (stream.startTimestamp) {
+        } else if (stream.startTimestamp) {
             debug('attempting to subscribe to stream', stream.name, 'at timestamp', stream.startTimestamp);
             subscribeRequest.setStarttimestamp(stream.startTimestamp.toString());
             return this.client.subscribe(subscribeRequest);
@@ -226,45 +228,15 @@ export default class LiftbridgeClient {
             const updatedSubject = (partition && partition > 0) ? `${subject}.${partition}` : subject;
             message.setSubject(updatedSubject);
             publishRequest.setMessage(message);
-            debug('going to publish message to', updatedSubject, 'with key', message.getKey().toString());
+            debug('going to publish message to subject', updatedSubject, 'at partition', partition, 'with key', message.getKey().toString());
             this.client.publish(publishRequest, { deadline: LiftbridgeClient.getDeadline() }, (err: ServiceError | null, response: PublishResponse | undefined) => {
                 if (err) {
-                    if (err.code === 4) return reject(new DeadlineExceededError());
+                    if (err.code === status.DEADLINE_EXCEEDED) return reject(new DeadlineExceededError());
                     return reject(err);
                 }
                 return resolve(response);
             });
         });
-    }
-
-    private createMetadataRequest(streams?: string[]): Promise<FetchMetadataResponse> {
-        return new Promise((resolve, reject) => {
-            const metadataRequest = new FetchMetadataRequest();
-            if (streams && streams.length) {
-                streams.forEach(stream => metadataRequest.addStreams(stream));
-            }
-            debug('going to fetch metadata for streams', streams);
-            this.client.fetchMetadata(metadataRequest, { deadline: LiftbridgeClient.getDeadline() }, (err: ServiceError | null, response: FetchMetadataResponse | undefined) => {
-                if (err) {
-                    if (err.code === 4) return reject(new DeadlineExceededError());
-                    return reject(err);
-                }
-                return resolve(response);
-            });
-        });
-    }
-
-    private async fetchMetadata(streams?: LiftbridgeStream | LiftbridgeStream[]) {
-        const streamNames: string[] = [];
-        if (streams) {
-            if (Array.isArray(streams)) {
-                streams.forEach(stream => streamNames.push(stream.name));
-            } else {
-                streamNames.push(streams.name);
-            }
-        }
-        const metadataFetcher = this.createMetadataRequest(streamNames);
-        return metadataFetcher;
     }
 
     /**
@@ -296,9 +268,10 @@ export default class LiftbridgeClient {
             Bluebird.any(connectionAttempts).then(client => {
                 this.client = client;
                 // Client connection succeeded. Now collect broker & partition metadata for all streams.
-                this.fetchMetadata().then(metadataResponse => {
-                    debug('post-connection metadata fetch completed');
-                    this.metadata = new LiftbridgeMetadata(this.client, metadataResponse);
+                const metadata = new LiftbridgeMetadata(this.client);
+                metadata.update().then(() => {
+                    debug('initial cluster metadata fetch completed');
+                    this.metadata = metadata;
                     return resolve(this.client);
                 });
             }).catch(() => reject(new CouldNotConnectToAnyServerError()));
@@ -370,7 +343,7 @@ export default class LiftbridgeClient {
      * @event status On gRPC process status.
      * @event error On some error.
      * @event end OnLiftbridge server finishing sending messages.
-     * @returns ReadableStream of messages.
+     * @returns `ReadableStream` of messages.
      */
     public subscribe(stream: LiftbridgeStream): ClientReadableStream<Message> {
         const subscription = this.createSubscribeRequest(stream);
