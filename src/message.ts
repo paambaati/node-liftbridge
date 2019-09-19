@@ -51,6 +51,7 @@ export interface IMessage {
     /**
      * Sets the NATS subject Liftbridge should publish the message ack
      * to. If it's not set or if there's no Deadline, Liftbridge will not send an ack.
+     * This is usually not needed when using the [[publish]] API.
      */
     ackInbox?: string;
     /**
