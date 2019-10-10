@@ -12,6 +12,7 @@
     "rules": {
         "@typescript-eslint/indent": ["error", 4],
         "no-console": 0,
-        "max-len": ["error", { "code": 180 }]
+        "max-len": ["error", { "code": 180 }],
+        "max-classes-per-file": [2, 3]
     }
 }

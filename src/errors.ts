@@ -1,4 +1,5 @@
 /* istanbul ignore file */
+/* eslint max-classes-per-file: 0 */
 /**
  * Custom errors.
  */
