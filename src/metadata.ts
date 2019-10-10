@@ -219,6 +219,7 @@ export default class LiftbridgeMetadata {
 
     // Wait for subject metadata to appear until `DEFAULTS.waitForSubjectMetadataUntil`.
     private async waitForSubjectMetadata(subject: string): Promise<IStreamInfo> {
+        // eslint-disable-next-line no-async-promise-executor
         return new Promise(async (resolve, reject) => {
             if (this.hasSubjectMetadata(subject)) return resolve(this.metadata.streams.bySubject[subject]);
             debug('metadata not found for subject', subject, 'so going to wait');

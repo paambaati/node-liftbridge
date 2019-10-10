@@ -219,21 +219,22 @@ export default class LiftbridgeClient {
     }
 
     private createPublishRequest(message: LiftbridgeMessage): Promise<PublishResponse> {
-        return new Promise(async (resolve, reject) => {
+        return new Promise((resolve, reject) => {
             const publishRequest = new PublishRequest();
             const subject = message.getSubject();
-            const partition = await this.findPartition(message);
-            const updatedSubject = (partition && partition > 0) ? `${subject}.${partition}` : subject;
-            message.setSubject(updatedSubject);
-            publishRequest.setMessage(message);
-            debug('going to publish message to subject', updatedSubject, 'at partition', partition, 'with key', message.getKey().toString());
-            this.client.publish(publishRequest, { deadline: LiftbridgeClient.getDeadline() }, (err: ServiceError | null, response: PublishResponse | undefined) => {
-                if (err) {
-                    if (err.code === status.DEADLINE_EXCEEDED) return reject(new DeadlineExceededError());
-                    return reject(err);
-                }
-                return resolve(response);
-            });
+            this.findPartition(message).then(partition => {
+                const updatedSubject = (partition && partition > 0) ? `${subject}.${partition}` : subject;
+                message.setSubject(updatedSubject);
+                publishRequest.setMessage(message);
+                debug('going to publish message to subject', updatedSubject, 'at partition', partition, 'with key', message.getKey().toString());
+                this.client.publish(publishRequest, { deadline: LiftbridgeClient.getDeadline() }, (err: ServiceError | null, response: PublishResponse | undefined) => {
+                    if (err) {
+                        if (err.code === status.DEADLINE_EXCEEDED) return reject(new DeadlineExceededError());
+                        return reject(err);
+                    }
+                    return resolve(response);
+                });
+            }).catch(reject);
         });
     }
 
