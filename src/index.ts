@@ -203,8 +203,8 @@ export default class LiftbridgeClient {
         const subscribeRequest = new SubscribeRequest();
         subscribeRequest.setStream(stream.name);
         if (stream.startPosition) subscribeRequest.setStartposition(stream.startPosition);
-        // subscribeRequest.setPartition(0); // TODO: debug this - figure out how best to allow to set specific partition.
-        // TODO: Subscribe requests must be sent to the leader of the requested stream partition - see https://github.com/liftbridge-io/liftbridge/blob/client_documentation/documentation/client.md#metadata-implementation
+        // TODO: debug this - figure out how best to allow to set specific partition.
+        // subscribeRequest.setPartition(0);
         if (stream.startOffset) {
             debug('attempting to subscribe to stream', stream.name, 'at offset', stream.startOffset);
             subscribeRequest.setStartoffset(stream.startOffset.toString());
