@@ -8,6 +8,9 @@
     "type": "git"
   },
   "author": "GP <me@httgp.com>",
+  "contributors": [
+    "André König <hey@andrekoenig.dev> (https://andrekoenig.de/)"
+  ],
   "license": "MIT",
   "private": false,
   "scripts": {
