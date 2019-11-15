@@ -137,8 +137,8 @@ test('Ⓜ️ Metadata — `getAddress()` should return broker address for the gi
     try {
         const metadataResponse2 = metadataJsonToResponse(JSON.parse(await readFile('./fixtures/metadata/metadata_no_leader.json')));
         // @ts-ignore No need to construct and pass a Client instance for this test.
-        const metadata = new LiftbridgeMetadata(null, metadataResponse2);
-        metadata.getAddress('test-stream-1', 0);
+        const metadata2 = new LiftbridgeMetadata(null, metadataResponse2);
+        metadata2.getAddress('test-stream-1', 0);
         t.fail('should throw when there is no leader.');
     } catch (err) {
         t.true(err instanceof NoKnownLeaderForPartitionError, 'thrown error should be correct.');
