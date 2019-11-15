@@ -10,7 +10,7 @@
         "strictPropertyInitialization": true,
         "noImplicitUseStrict": true,
         "preserveConstEnums": true,
-        "declaration": false,
+        "declaration": true,
         "module": "commonjs",
         "moduleResolution": "node",
         "target": "es6",
