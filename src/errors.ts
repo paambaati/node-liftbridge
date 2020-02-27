@@ -45,6 +45,15 @@ enum MetadataErrorCodes {
 }
 
 /**
+ * @hidden
+ */
+enum MessageErrorCodes {
+    ERR_MESSAGE_MISSING_ENVELOPE_HEADER = 'ERR_MESSAGE_MISSING_ENVELOPE_HEADER',
+    ERR_MESSAGE_UNEXPECTED_ENVELOPE_MAGIC_NUMBER = 'ERR_MESSAGE_UNEXPECTED_ENVELOPE_MAGIC_NUMBER',
+    ERR_MESSAGE_UNKNOWN_ENVELOPE_PROTOCOL = 'ERR_MESSAGE_UNKNOWN_ENVELOPE_PROTOCOL',
+}
+
+/**
  * Liftbridge error codes.
  *
  * All errors include a `code` field that will include a unique
@@ -71,6 +80,7 @@ export const ErrorCodes = {
     ...CreateStreamErrorCodes,
     ...SubscribeErrorCodes,
     ...MetadataErrorCodes,
+    ...MessageErrorCodes,
 };
 
 /**
@@ -132,6 +142,21 @@ class MetadataError extends Error {
         super();
         Object.setPrototypeOf(this, new.target.prototype);
         this.name = 'MetadataError';
+        this.stack = new Error(message).stack;
+        return this;
+    }
+}
+
+/**
+ * Message Errors.
+ * Master class for all errors from reading messages from a Liftbridge subject.
+ * @category Error
+ */
+class MessageError extends Error {
+    constructor(public message: string = 'Unexpected error while reading message from Liftbridge subject', public code?: string) {
+        super();
+        Object.setPrototypeOf(this, new.target.prototype);
+        this.name = 'MessageError';
         this.stack = new Error(message).stack;
         return this;
     }
@@ -271,4 +296,31 @@ export class NoKnownLeaderForPartitionError extends MetadataError {
     message = 'No known leader for partition!';
 
     code = MetadataErrorCodes.ERR_NO_KNOWN_LEADER_FOR_PARTITION;
+}
+
+/**
+ * @category Error
+ */
+export class MissingEnvelopeHeaderError extends MessageError {
+    name = 'MissingEnvelopeHeaderError';
+
+    message = 'Data missing envelope header!';
+
+    code = MessageErrorCodes.ERR_MESSAGE_MISSING_ENVELOPE_HEADER;
+}
+
+export class UnexpectedEnvelopeMagicNumberError extends MessageError {
+    name = 'UnexpectedEnvelopeMagicNumberError';
+
+    message = 'Unexpected envelope magic number!';
+
+    code = MessageErrorCodes.ERR_MESSAGE_UNEXPECTED_ENVELOPE_MAGIC_NUMBER;
+}
+
+export class UnknownEnvelopeProtocolError extends MessageError {
+    name = 'UnknownEnvelopeProtocolError';
+
+    message = 'Unknown envelope protocol!';
+
+    code = MessageErrorCodes.ERR_MESSAGE_UNEXPECTED_ENVELOPE_MAGIC_NUMBER;
 }
