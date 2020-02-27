@@ -19,7 +19,7 @@ cleanup () {
 trap cleanup EXIT
 
 # Fetch Liftbridge gRPC Proto definition.
-wget -q https://raw.githubusercontent.com/liftbridge-io/liftbridge-grpc/5694b15f251d2ff16d7d4c3e8d944aab327d3ef0/api.proto -O ../grpc/api.proto
+wget -q https://raw.githubusercontent.com/liftbridge-io/liftbridge-grpc/8382298b935c78e9072d870570ba0e1585a29660/api.proto -O ../grpc/api.proto
 echo "Downloaded Liftbridge Proto file..."
 
 # Fetch & extract protoc.
