@@ -73,7 +73,7 @@ export interface ICredentials {
  * Create a client for working with a Liftbridge cluster.
  *
  * @example Insecure connection (default).
- * ```
+ * ```typescript
  * import LiftbridgeClient from 'liftbridge';
  *
  * const client = new LiftbridgeClient('localhost:9292');
@@ -81,7 +81,7 @@ export interface ICredentials {
  * ```
  *
  * @example Secure TLS connection (recommended in production).
- * ```
+ * ```typescript
  * import LiftbridgeClient from 'liftbridge';
  *
  * const client = new LiftbridgeClient('localhost:9292', {
@@ -243,7 +243,7 @@ export default class LiftbridgeClient {
      *
      * @example Connecting to a Liftbridge cluster with a custom timeout and multiple retries.
      *
-     * ```
+     * ```typescript
      * import LiftbridgeClient from 'liftbridge';
      *
      * const client = new LiftbridgeClient('localhost:9292');
@@ -284,7 +284,7 @@ export default class LiftbridgeClient {
      * stream with the given subject and name already exists.
      *
      * @example Create a new stream on the Liftbridge cluster.
-     * ```
+     * ```typescript
      * import LiftbridgeClient from 'liftbridge';
      *
      * const client = new LiftbridgeClient('localhost:9292');
@@ -317,7 +317,7 @@ export default class LiftbridgeClient {
      * a subscription.
      *
      * @example Subscribing to a subject.
-     * ```
+     * ```typescript
      * import LiftbridgeClient from 'liftbridge';
      * import LiftbridgeStream, { StartPosition } from 'liftbridge/stream';
      *
@@ -358,7 +358,7 @@ export default class LiftbridgeClient {
      * returns null.
      *
      * @example Publish a message to a subject.
-     * ```
+     * ```typescript
      * import LiftbridgeClient from 'liftbridge';
      * import LiftbridgeMessage, { AckPolicy } from 'liftbridge/message';
      *

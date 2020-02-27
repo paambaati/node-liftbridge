@@ -44,7 +44,7 @@ export interface IStreamOptions {
      * as nanoseconds since UNIX epoch time.
      *
      * @example
-     * ```
+     * ```typescript
      * const startTimestamp = Date.now() * 1e6;
      * ```
      */

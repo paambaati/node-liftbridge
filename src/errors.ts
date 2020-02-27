@@ -51,7 +51,7 @@ enum MetadataErrorCodes {
  * code for the error which can be handled gracefully.
  *
  * @example Handling a custom error.
- * ```
+ * ```typescript
  * import LiftbridgeClient from 'liftbridge';
  * import { ErrorCodes } from 'liftbridge/errors';
  *
