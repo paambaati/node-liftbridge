@@ -142,10 +142,38 @@ export namespace FetchMetadataResponse {
 }
 
 export class PublishRequest extends jspb.Message {
-  hasMessage(): boolean;
-  clearMessage(): void;
-  getMessage(): Message | undefined;
-  setMessage(value?: Message): void;
+  getKey(): Uint8Array | string;
+  getKey_asU8(): Uint8Array;
+  getKey_asB64(): string;
+  setKey(value: Uint8Array | string): void;
+
+  getValue(): Uint8Array | string;
+  getValue_asU8(): Uint8Array;
+  getValue_asB64(): string;
+  setValue(value: Uint8Array | string): void;
+
+  getStream(): string;
+  setStream(value: string): void;
+
+  getPartition(): number;
+  setPartition(value: number): void;
+
+  getSubject(): string;
+  setSubject(value: string): void;
+
+  getReplysubject(): string;
+  setReplysubject(value: string): void;
+
+  getHeadersMap(): jspb.Map<string, Uint8Array | string>;
+  clearHeadersMap(): void;
+  getAckinbox(): string;
+  setAckinbox(value: string): void;
+
+  getCorrelationid(): string;
+  setCorrelationid(value: string): void;
+
+  getAckpolicy(): AckPolicyMap[keyof AckPolicyMap];
+  setAckpolicy(value: AckPolicyMap[keyof AckPolicyMap]): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): PublishRequest.AsObject;
@@ -159,7 +187,16 @@ export class PublishRequest extends jspb.Message {
 
 export namespace PublishRequest {
   export type AsObject = {
-    message?: Message.AsObject,
+    key: Uint8Array | string,
+    value: Uint8Array | string,
+    stream: string,
+    partition: number,
+    subject: string,
+    replysubject: string,
+    headersMap: Array<[string, Uint8Array | string]>,
+    ackinbox: string,
+    correlationid: string,
+    ackpolicy: AckPolicyMap[keyof AckPolicyMap],
   }
 }
 
@@ -304,11 +341,17 @@ export class Message extends jspb.Message {
   getTimestamp(): string;
   setTimestamp(value: string): void;
 
+  getStream(): string;
+  setStream(value: string): void;
+
+  getPartition(): number;
+  setPartition(value: number): void;
+
   getSubject(): string;
   setSubject(value: string): void;
 
-  getReply(): string;
-  setReply(value: string): void;
+  getReplysubject(): string;
+  setReplysubject(value: string): void;
 
   getHeadersMap(): jspb.Map<string, Uint8Array | string>;
   clearHeadersMap(): void;
@@ -337,8 +380,10 @@ export namespace Message {
     key: Uint8Array | string,
     value: Uint8Array | string,
     timestamp: string,
+    stream: string,
+    partition: number,
     subject: string,
-    reply: string,
+    replysubject: string,
     headersMap: Array<[string, Uint8Array | string]>,
     ackinbox: string,
     correlationid: string,

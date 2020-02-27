@@ -1238,7 +1238,16 @@ proto.proto.PublishRequest.prototype.toObject = function(opt_includeInstance) {
  */
 proto.proto.PublishRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    message: (f = msg.getMessage()) && proto.proto.Message.toObject(includeInstance, f)
+    key: msg.getKey_asB64(),
+    value: msg.getValue_asB64(),
+    stream: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    partition: jspb.Message.getFieldWithDefault(msg, 4, 0),
+    subject: jspb.Message.getFieldWithDefault(msg, 5, ""),
+    replysubject: jspb.Message.getFieldWithDefault(msg, 6, ""),
+    headersMap: (f = msg.getHeadersMap()) ? f.toObject(includeInstance, undefined) : [],
+    ackinbox: jspb.Message.getFieldWithDefault(msg, 8, ""),
+    correlationid: jspb.Message.getFieldWithDefault(msg, 9, ""),
+    ackpolicy: jspb.Message.getFieldWithDefault(msg, 10, 0)
   };
 
   if (includeInstance) {
@@ -1276,9 +1285,46 @@ proto.proto.PublishRequest.deserializeBinaryFromReader = function(msg, reader) {
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = new proto.proto.Message;
-      reader.readMessage(value,proto.proto.Message.deserializeBinaryFromReader);
-      msg.setMessage(value);
+      var value = /** @type {!Uint8Array} */ (reader.readBytes());
+      msg.setKey(value);
+      break;
+    case 2:
+      var value = /** @type {!Uint8Array} */ (reader.readBytes());
+      msg.setValue(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setStream(value);
+      break;
+    case 4:
+      var value = /** @type {number} */ (reader.readInt32());
+      msg.setPartition(value);
+      break;
+    case 5:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setSubject(value);
+      break;
+    case 6:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setReplysubject(value);
+      break;
+    case 7:
+      var value = msg.getHeadersMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readBytes, null, "");
+         });
+      break;
+    case 8:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setAckinbox(value);
+      break;
+    case 9:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setCorrelationid(value);
+      break;
+    case 10:
+      var value = /** @type {!proto.proto.AckPolicy} */ (reader.readEnum());
+      msg.setAckpolicy(value);
       break;
     default:
       reader.skipField();
@@ -1309,47 +1355,277 @@ proto.proto.PublishRequest.prototype.serializeBinary = function() {
  */
 proto.proto.PublishRequest.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getMessage();
-  if (f != null) {
-    writer.writeMessage(
+  f = message.getKey_asU8();
+  if (f.length > 0) {
+    writer.writeBytes(
       1,
-      f,
-      proto.proto.Message.serializeBinaryToWriter
+      f
+    );
+  }
+  f = message.getValue_asU8();
+  if (f.length > 0) {
+    writer.writeBytes(
+      2,
+      f
+    );
+  }
+  f = message.getStream();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
+  f = message.getPartition();
+  if (f !== 0) {
+    writer.writeInt32(
+      4,
+      f
+    );
+  }
+  f = message.getSubject();
+  if (f.length > 0) {
+    writer.writeString(
+      5,
+      f
+    );
+  }
+  f = message.getReplysubject();
+  if (f.length > 0) {
+    writer.writeString(
+      6,
+      f
+    );
+  }
+  f = message.getHeadersMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(7, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeBytes);
+  }
+  f = message.getAckinbox();
+  if (f.length > 0) {
+    writer.writeString(
+      8,
+      f
+    );
+  }
+  f = message.getCorrelationid();
+  if (f.length > 0) {
+    writer.writeString(
+      9,
+      f
+    );
+  }
+  f = message.getAckpolicy();
+  if (f !== 0.0) {
+    writer.writeEnum(
+      10,
+      f
     );
   }
 };
 
 
 /**
- * optional Message message = 1;
- * @return {?proto.proto.Message}
+ * optional bytes key = 1;
+ * @return {!(string|Uint8Array)}
  */
-proto.proto.PublishRequest.prototype.getMessage = function() {
-  return /** @type{?proto.proto.Message} */ (
-    jspb.Message.getWrapperField(this, proto.proto.Message, 1));
-};
-
-
-/** @param {?proto.proto.Message|undefined} value */
-proto.proto.PublishRequest.prototype.setMessage = function(value) {
-  jspb.Message.setWrapperField(this, 1, value);
+proto.proto.PublishRequest.prototype.getKey = function() {
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
 
 
 /**
- * Clears the message field making it undefined.
+ * optional bytes key = 1;
+ * This is a type-conversion wrapper around `getKey()`
+ * @return {string}
  */
-proto.proto.PublishRequest.prototype.clearMessage = function() {
-  this.setMessage(undefined);
+proto.proto.PublishRequest.prototype.getKey_asB64 = function() {
+  return /** @type {string} */ (jspb.Message.bytesAsB64(
+      this.getKey()));
 };
 
 
 /**
- * Returns whether this field is set.
- * @return {boolean}
+ * optional bytes key = 1;
+ * Note that Uint8Array is not supported on all browsers.
+ * @see http://caniuse.com/Uint8Array
+ * This is a type-conversion wrapper around `getKey()`
+ * @return {!Uint8Array}
  */
-proto.proto.PublishRequest.prototype.hasMessage = function() {
-  return jspb.Message.getField(this, 1) != null;
+proto.proto.PublishRequest.prototype.getKey_asU8 = function() {
+  return /** @type {!Uint8Array} */ (jspb.Message.bytesAsU8(
+      this.getKey()));
+};
+
+
+/** @param {!(string|Uint8Array)} value */
+proto.proto.PublishRequest.prototype.setKey = function(value) {
+  jspb.Message.setProto3BytesField(this, 1, value);
+};
+
+
+/**
+ * optional bytes value = 2;
+ * @return {!(string|Uint8Array)}
+ */
+proto.proto.PublishRequest.prototype.getValue = function() {
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * optional bytes value = 2;
+ * This is a type-conversion wrapper around `getValue()`
+ * @return {string}
+ */
+proto.proto.PublishRequest.prototype.getValue_asB64 = function() {
+  return /** @type {string} */ (jspb.Message.bytesAsB64(
+      this.getValue()));
+};
+
+
+/**
+ * optional bytes value = 2;
+ * Note that Uint8Array is not supported on all browsers.
+ * @see http://caniuse.com/Uint8Array
+ * This is a type-conversion wrapper around `getValue()`
+ * @return {!Uint8Array}
+ */
+proto.proto.PublishRequest.prototype.getValue_asU8 = function() {
+  return /** @type {!Uint8Array} */ (jspb.Message.bytesAsU8(
+      this.getValue()));
+};
+
+
+/** @param {!(string|Uint8Array)} value */
+proto.proto.PublishRequest.prototype.setValue = function(value) {
+  jspb.Message.setProto3BytesField(this, 2, value);
+};
+
+
+/**
+ * optional string stream = 3;
+ * @return {string}
+ */
+proto.proto.PublishRequest.prototype.getStream = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/** @param {string} value */
+proto.proto.PublishRequest.prototype.setStream = function(value) {
+  jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+/**
+ * optional int32 partition = 4;
+ * @return {number}
+ */
+proto.proto.PublishRequest.prototype.getPartition = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 4, 0));
+};
+
+
+/** @param {number} value */
+proto.proto.PublishRequest.prototype.setPartition = function(value) {
+  jspb.Message.setProto3IntField(this, 4, value);
+};
+
+
+/**
+ * optional string subject = 5;
+ * @return {string}
+ */
+proto.proto.PublishRequest.prototype.getSubject = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 5, ""));
+};
+
+
+/** @param {string} value */
+proto.proto.PublishRequest.prototype.setSubject = function(value) {
+  jspb.Message.setProto3StringField(this, 5, value);
+};
+
+
+/**
+ * optional string replySubject = 6;
+ * @return {string}
+ */
+proto.proto.PublishRequest.prototype.getReplysubject = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 6, ""));
+};
+
+
+/** @param {string} value */
+proto.proto.PublishRequest.prototype.setReplysubject = function(value) {
+  jspb.Message.setProto3StringField(this, 6, value);
+};
+
+
+/**
+ * map<string, bytes> headers = 7;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,!(string|Uint8Array)>}
+ */
+proto.proto.PublishRequest.prototype.getHeadersMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,!(string|Uint8Array)>} */ (
+      jspb.Message.getMapField(this, 7, opt_noLazyCreate,
+      null));
+};
+
+
+/**
+ * Clears values from the map. The map will be non-null.
+ */
+proto.proto.PublishRequest.prototype.clearHeadersMap = function() {
+  this.getHeadersMap().clear();
+};
+
+
+/**
+ * optional string ackInbox = 8;
+ * @return {string}
+ */
+proto.proto.PublishRequest.prototype.getAckinbox = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 8, ""));
+};
+
+
+/** @param {string} value */
+proto.proto.PublishRequest.prototype.setAckinbox = function(value) {
+  jspb.Message.setProto3StringField(this, 8, value);
+};
+
+
+/**
+ * optional string correlationId = 9;
+ * @return {string}
+ */
+proto.proto.PublishRequest.prototype.getCorrelationid = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 9, ""));
+};
+
+
+/** @param {string} value */
+proto.proto.PublishRequest.prototype.setCorrelationid = function(value) {
+  jspb.Message.setProto3StringField(this, 9, value);
+};
+
+
+/**
+ * optional AckPolicy ackPolicy = 10;
+ * @return {!proto.proto.AckPolicy}
+ */
+proto.proto.PublishRequest.prototype.getAckpolicy = function() {
+  return /** @type {!proto.proto.AckPolicy} */ (jspb.Message.getFieldWithDefault(this, 10, 0));
+};
+
+
+/** @param {!proto.proto.AckPolicy} value */
+proto.proto.PublishRequest.prototype.setAckpolicy = function(value) {
+  jspb.Message.setProto3EnumField(this, 10, value);
 };
 
 
@@ -2187,12 +2463,14 @@ proto.proto.Message.toObject = function(includeInstance, msg) {
     key: msg.getKey_asB64(),
     value: msg.getValue_asB64(),
     timestamp: jspb.Message.getFieldWithDefault(msg, 4, "0"),
-    subject: jspb.Message.getFieldWithDefault(msg, 5, ""),
-    reply: jspb.Message.getFieldWithDefault(msg, 6, ""),
+    stream: jspb.Message.getFieldWithDefault(msg, 5, ""),
+    partition: jspb.Message.getFieldWithDefault(msg, 6, 0),
+    subject: jspb.Message.getFieldWithDefault(msg, 7, ""),
+    replysubject: jspb.Message.getFieldWithDefault(msg, 8, ""),
     headersMap: (f = msg.getHeadersMap()) ? f.toObject(includeInstance, undefined) : [],
-    ackinbox: jspb.Message.getFieldWithDefault(msg, 8, ""),
-    correlationid: jspb.Message.getFieldWithDefault(msg, 9, ""),
-    ackpolicy: jspb.Message.getFieldWithDefault(msg, 10, 0)
+    ackinbox: jspb.Message.getFieldWithDefault(msg, 10, ""),
+    correlationid: jspb.Message.getFieldWithDefault(msg, 11, ""),
+    ackpolicy: jspb.Message.getFieldWithDefault(msg, 12, 0)
   };
 
   if (includeInstance) {
@@ -2247,27 +2525,35 @@ proto.proto.Message.deserializeBinaryFromReader = function(msg, reader) {
       break;
     case 5:
       var value = /** @type {string} */ (reader.readString());
-      msg.setSubject(value);
+      msg.setStream(value);
       break;
     case 6:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setReply(value);
+      var value = /** @type {number} */ (reader.readInt32());
+      msg.setPartition(value);
       break;
     case 7:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setSubject(value);
+      break;
+    case 8:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setReplysubject(value);
+      break;
+    case 9:
       var value = msg.getHeadersMap();
       reader.readMessage(value, function(message, reader) {
         jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readBytes, null, "");
          });
       break;
-    case 8:
+    case 10:
       var value = /** @type {string} */ (reader.readString());
       msg.setAckinbox(value);
       break;
-    case 9:
+    case 11:
       var value = /** @type {string} */ (reader.readString());
       msg.setCorrelationid(value);
       break;
-    case 10:
+    case 12:
       var value = /** @type {!proto.proto.AckPolicy} */ (reader.readEnum());
       msg.setAckpolicy(value);
       break;
@@ -2328,42 +2614,56 @@ proto.proto.Message.serializeBinaryToWriter = function(message, writer) {
       f
     );
   }
-  f = message.getSubject();
+  f = message.getStream();
   if (f.length > 0) {
     writer.writeString(
       5,
       f
     );
   }
-  f = message.getReply();
-  if (f.length > 0) {
-    writer.writeString(
+  f = message.getPartition();
+  if (f !== 0) {
+    writer.writeInt32(
       6,
       f
     );
   }
-  f = message.getHeadersMap(true);
-  if (f && f.getLength() > 0) {
-    f.serializeBinary(7, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeBytes);
+  f = message.getSubject();
+  if (f.length > 0) {
+    writer.writeString(
+      7,
+      f
+    );
   }
-  f = message.getAckinbox();
+  f = message.getReplysubject();
   if (f.length > 0) {
     writer.writeString(
       8,
       f
     );
   }
+  f = message.getHeadersMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(9, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeBytes);
+  }
+  f = message.getAckinbox();
+  if (f.length > 0) {
+    writer.writeString(
+      10,
+      f
+    );
+  }
   f = message.getCorrelationid();
   if (f.length > 0) {
     writer.writeString(
-      9,
+      11,
       f
     );
   }
   f = message.getAckpolicy();
   if (f !== 0.0) {
     writer.writeEnum(
-      10,
+      12,
       f
     );
   }
@@ -2479,44 +2779,74 @@ proto.proto.Message.prototype.setTimestamp = function(value) {
 
 
 /**
- * optional string subject = 5;
+ * optional string stream = 5;
  * @return {string}
  */
-proto.proto.Message.prototype.getSubject = function() {
+proto.proto.Message.prototype.getStream = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 5, ""));
 };
 
 
 /** @param {string} value */
-proto.proto.Message.prototype.setSubject = function(value) {
+proto.proto.Message.prototype.setStream = function(value) {
   jspb.Message.setProto3StringField(this, 5, value);
 };
 
 
 /**
- * optional string reply = 6;
- * @return {string}
+ * optional int32 partition = 6;
+ * @return {number}
  */
-proto.proto.Message.prototype.getReply = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 6, ""));
+proto.proto.Message.prototype.getPartition = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 6, 0));
 };
 
 
-/** @param {string} value */
-proto.proto.Message.prototype.setReply = function(value) {
-  jspb.Message.setProto3StringField(this, 6, value);
+/** @param {number} value */
+proto.proto.Message.prototype.setPartition = function(value) {
+  jspb.Message.setProto3IntField(this, 6, value);
 };
 
 
 /**
- * map<string, bytes> headers = 7;
+ * optional string subject = 7;
+ * @return {string}
+ */
+proto.proto.Message.prototype.getSubject = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 7, ""));
+};
+
+
+/** @param {string} value */
+proto.proto.Message.prototype.setSubject = function(value) {
+  jspb.Message.setProto3StringField(this, 7, value);
+};
+
+
+/**
+ * optional string replySubject = 8;
+ * @return {string}
+ */
+proto.proto.Message.prototype.getReplysubject = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 8, ""));
+};
+
+
+/** @param {string} value */
+proto.proto.Message.prototype.setReplysubject = function(value) {
+  jspb.Message.setProto3StringField(this, 8, value);
+};
+
+
+/**
+ * map<string, bytes> headers = 9;
  * @param {boolean=} opt_noLazyCreate Do not create the map if
  * empty, instead returning `undefined`
  * @return {!jspb.Map<string,!(string|Uint8Array)>}
  */
 proto.proto.Message.prototype.getHeadersMap = function(opt_noLazyCreate) {
   return /** @type {!jspb.Map<string,!(string|Uint8Array)>} */ (
-      jspb.Message.getMapField(this, 7, opt_noLazyCreate,
+      jspb.Message.getMapField(this, 9, opt_noLazyCreate,
       null));
 };
 
@@ -2530,47 +2860,47 @@ proto.proto.Message.prototype.clearHeadersMap = function() {
 
 
 /**
- * optional string ackInbox = 8;
+ * optional string ackInbox = 10;
  * @return {string}
  */
 proto.proto.Message.prototype.getAckinbox = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 8, ""));
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 10, ""));
 };
 
 
 /** @param {string} value */
 proto.proto.Message.prototype.setAckinbox = function(value) {
-  jspb.Message.setProto3StringField(this, 8, value);
+  jspb.Message.setProto3StringField(this, 10, value);
 };
 
 
 /**
- * optional string correlationId = 9;
+ * optional string correlationId = 11;
  * @return {string}
  */
 proto.proto.Message.prototype.getCorrelationid = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 9, ""));
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 11, ""));
 };
 
 
 /** @param {string} value */
 proto.proto.Message.prototype.setCorrelationid = function(value) {
-  jspb.Message.setProto3StringField(this, 9, value);
+  jspb.Message.setProto3StringField(this, 11, value);
 };
 
 
 /**
- * optional AckPolicy ackPolicy = 10;
+ * optional AckPolicy ackPolicy = 12;
  * @return {!proto.proto.AckPolicy}
  */
 proto.proto.Message.prototype.getAckpolicy = function() {
-  return /** @type {!proto.proto.AckPolicy} */ (jspb.Message.getFieldWithDefault(this, 10, 0));
+  return /** @type {!proto.proto.AckPolicy} */ (jspb.Message.getFieldWithDefault(this, 12, 0));
 };
 
 
 /** @param {!proto.proto.AckPolicy} value */
 proto.proto.Message.prototype.setAckpolicy = function(value) {
-  jspb.Message.setProto3EnumField(this, 10, value);
+  jspb.Message.setProto3EnumField(this, 12, value);
 };
 
 

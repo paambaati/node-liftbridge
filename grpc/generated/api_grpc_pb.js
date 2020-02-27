@@ -96,9 +96,9 @@ function deserialize_proto_SubscribeRequest(buffer_arg) {
 // API is the main Liftbridge server interface clients interact with.
 var APIService = exports.APIService = {
   // CreateStream creates a new stream attached to a NATS subject. It returns
-  // an AlreadyExists status code if a stream with the given subject and name
-  // already exists.
-  createStream: {
+// an AlreadyExists status code if a stream with the given subject and name
+// already exists.
+createStream: {
     path: '/proto.API/CreateStream',
     requestStream: false,
     responseStream: false,
@@ -110,10 +110,10 @@ var APIService = exports.APIService = {
     responseDeserialize: deserialize_proto_CreateStreamResponse,
   },
   // Subscribe creates an ephemeral subscription for the given stream. It
-  // begins to receive messages starting at the given offset and waits for
-  // new messages when it reaches the end of the stream. Use the request
-  // context to close the subscription.
-  subscribe: {
+// begins to receive messages starting at the given offset and waits for
+// new messages when it reaches the end of the stream. Use the request
+// context to close the subscription.
+subscribe: {
     path: '/proto.API/Subscribe',
     requestStream: false,
     responseStream: true,
@@ -125,8 +125,8 @@ var APIService = exports.APIService = {
     responseDeserialize: deserialize_proto_Message,
   },
   // FetchMetadata retrieves the latest cluster metadata, including stream
-  // broker information.
-  fetchMetadata: {
+// broker information.
+fetchMetadata: {
     path: '/proto.API/FetchMetadata',
     requestStream: false,
     responseStream: false,
@@ -138,10 +138,10 @@ var APIService = exports.APIService = {
     responseDeserialize: deserialize_proto_FetchMetadataResponse,
   },
   // Publish a new message to a subject. If the AckPolicy is not NONE and a
-  // deadline is provided, this will synchronously block until the ack is
-  // received. If the ack is not received in time, a DeadlineExceeded status
-  // code is returned.
-  publish: {
+// deadline is provided, this will synchronously block until the ack is
+// received. If the ack is not received in time, a DeadlineExceeded status
+// code is returned.
+publish: {
     path: '/proto.API/Publish',
     requestStream: false,
     responseStream: false,
