@@ -5,11 +5,19 @@ import { BuiltinPartitioners, PartitionerLike } from './partition';
 /**
  * @hidden
  */
-const envelopeCookie = Buffer.from('LIFT');
+const envelopeMagicNumber = Buffer.from([0xB9, 0x0E, 0x43, 0xB4]);
 /**
  * @hidden
  */
-const envelopeCookieLength = envelopeCookie.length;
+const envelopeMagicNumberLength = envelopeMagicNumber.length;
+/**
+ * @hidden
+ */
+const envelopeProtoV0 = 0x00;
+/**
+ * @hidden
+ */
+const envelopeMinHeaderLength = 8;
 
 /**
  * Liftbridge message headers.
@@ -157,7 +165,20 @@ export default class LiftbridgeMessage extends Message {
      */
     public serializeMessage(): Buffer {
         const serializedMessage = this.serializeBinary();
-        return Buffer.concat([envelopeCookie, serializedMessage], envelopeCookieLength + serializedMessage.length);
+        let position = 0;
+        const returnMessage = Buffer.from(envelopeMagicNumber, position, envelopeMagicNumberLength + 4 + serializedMessage.length);
+        position += envelopeMagicNumberLength;
+        returnMessage.write(envelopeProtoV0.toString(), position);
+        position += 1;
+        returnMessage.write('0x00', position); // Flags.
+        position += 1;
+        returnMessage.write('0x00', position); // Reserved for future use.
+        position += 1;
+        if (position !== envelopeMinHeaderLength) {
+            // TODO: Throw https://github.com/liftbridge-io/go-liftbridge/blob/6490950e9e465ae75f64feba3de3823a0f744528/message.go#L523
+        }
+        returnMessage.write(serializedMessage.toString(), position);
+        return returnMessage;
     }
 
     /**
